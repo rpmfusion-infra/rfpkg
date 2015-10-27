@@ -1,0 +1,5 @@
+This is the rfpkg project, which mostly is a subclass of the rpkg project.
+
+Unless otherwise specified, all files are licensed under GPLv2+.
+
+See https://github.com/rpmfusion-infra/rfpkg for more information, bug tracking, etc.

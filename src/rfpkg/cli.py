@@ -74,19 +74,11 @@ class rfpkgClient(cliClient):
                 self.cmd.retire(self.args.reason)
             self.push()
 
-            # get module name from git, because pyrpkg gets it from SPEC,
-            # which is deleted at this point
-            cmd = ['git', 'config', '--get', 'remote.origin.url']
-            module_name = subprocess.check_output(cmd, cwd=self.cmd.path)
-            module_name = \
-                module_name.strip().split(self.cmd.gitbaseurl %
-                                          {'user': self.cmd.user,
-                                           'module': ''})[1]
             branch = self.cmd.branch_merge
             pkgdb = pkgdb2client.PkgDB(
                 login_callback=pkgdb2client.ask_password)
-            pkgdb.retire_packages(module_name, branch)
-        except Exception, e:
+            pkgdb.retire_packages(module_name, branch, namespace=namespace)
+        except Exception as e:
             self.log.error('Could not retire package: %s' % e)
             sys.exit(1)
 
@@ -170,11 +162,11 @@ suggest_reboot=False
             self.log.error('No bodhi update details saved!')
             sys.exit(1)
         # If the template was changed, submit it to bodhi
-        hash = self.cmd._hash_file('bodhi.template', 'sha1')
+        hash = self.cmd.lookasidecache.hash_file('bodhi.template', 'sha1')
         if hash != orig_hash:
             try:
                 self.cmd.update('bodhi.template')
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Could not generate update request: %s' % e)
                 sys.exit(1)
         else:

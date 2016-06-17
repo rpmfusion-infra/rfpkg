@@ -18,7 +18,7 @@ from pyrpkg.lookaside import CGILookasideCache
 
 
 class RPMFusionLookasideCache(CGILookasideCache):
-    def __init__(self, hashtype, download_url, upload_url, namespace
+    def __init__(self, hashtype, download_url, upload_url, namespace,
                  client_cert=None, ca_cert=None):
         super(RPMFusionLookasideCache, self).__init__(
             hashtype, download_url, upload_url, client_cert=client_cert,

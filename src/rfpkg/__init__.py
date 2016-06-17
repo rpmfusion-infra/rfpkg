@@ -15,17 +15,19 @@ import os
 import cli
 import git
 import re
-import pycurl
 import fedora_cert
 import platform
+
+from .lookaside import RPMFusionLookasideCache
+from pyrpkg.utils import cached_property
 
 
 class Commands(pyrpkg.Commands):
 
     def __init__(self, path, lookaside, lookasidehash, lookaside_cgi,
                  gitbaseurl, anongiturl, branchre, kojiconfig,
-                 build_client, user=None, dist=None, target=None, namespace=None,
-                 quiet=False):
+                 build_client, user=None, dist=None, target=None,
+                 quiet=False, distgit_namespaced=False):
         """Init the object and some configuration details."""
 
         # We are subclassing to set kojiconfig to none, so that we can
@@ -34,7 +36,8 @@ class Commands(pyrpkg.Commands):
                                        lookaside_cgi, gitbaseurl, anongiturl,
                                        branchre, kojiconfig, build_client,
                                        user=user, dist=dist, target=target,
-                                       quiet=quiet)
+                                       quiet=quiet,
+                                       distgit_namespaced=distgit_namespaced)
 
         # New data
         self.secondary_arch = {
@@ -100,27 +103,33 @@ class Commands(pyrpkg.Commands):
                 return
         self._kojiconfig = self._orig_kojiconfig
 
-    @property
+    @cached_property
     def cert_file(self):
-        """This property ensures the cert_file attribute"""
+        """A client-side certificate for SSL authentication
 
-        if not self._cert_file:
-            self.load_cert_files()
-        return self._cert_file
+        We override this from pyrpkg because we actually need a client-side
+        certificate.
+        """
+        return os.path.expanduser('~/.rpmfusion.cert')
 
-    @property
+    @cached_property
     def ca_cert(self):
-        """This property ensures the ca_cert attribute"""
+        """A CA certificate to authenticate the server in SSL connections
 
-        if not self._ca_cert:
-            self.load_cert_files()
-        return self._ca_cert
+        We override this from pyrpkg because we actually need a custom
+        CA certificate.
+        """
+        return os.path.expanduser('~/.rpmfusion-server-ca.cert')
 
-    def load_cert_files(self):
-        """This loads the cert_file attribute"""
+    @cached_property
+    def lookasidecache(self):
+        """A helper to interact with the lookaside cache
 
-        self._cert_file = os.path.expanduser('~/.rpmfusion.cert')
-        self._ca_cert = os.path.expanduser('~/.rpmfusion-server-ca.cert')
+        We override this because we need a different download path.
+        """
+        return RPMFusionLookasideCache(
+            self.lookasidehash, self.lookaside, self.lookaside_cgi,namespace=namespace,
+            client_cert=self.cert_file, ca_cert=self.ca_cert)
 
     # Overloaded property loaders
     def load_rpmdefines(self):
@@ -166,7 +175,8 @@ class Commands(pyrpkg.Commands):
                             "--define '_srcrpmdir %s'" % self.path,
                             "--define '_rpmdir %s'" % self.path,
                             "--define 'dist .%s'" % self.dist,
-                            "--define '%s %s'" % (self._distvar, self._distval),
+                            "--define '%s %s'" % (self._distvar,
+                                                  self._distval),
                             "--eval '%%undefine %s'" % self._distunset,
                             "--define '%s 1'" % self.dist]
         if self._runtime_disttag:
@@ -188,47 +198,12 @@ class Commands(pyrpkg.Commands):
         """This sets the user attribute, based on the Fedora SSL cert."""
         try:
             self._user = fedora_cert.read_user_cert()
-        except Exception, e:
+        except Exception as e:
             self.log.debug('Could not read Fedora cert, falling back to '
                            'default method: %s' % e)
             super(Commands, self).load_user()
 
     # New functionality
-    def _create_curl(self):
-        """Common curl setup options used for all requests to lookaside."""
-
-        # Overloaded to add cert files to curl objects
-        # Call the super class
-        curl = super(Commands, self)._create_curl()
-
-        # Set the users Fedora certificate:
-        if os.path.exists(self.cert_file):
-            curl.setopt(pycurl.SSLCERT, self.cert_file)
-        else:
-            self.log.warn("Missing certificate: %s" % self.cert_file)
-
-        # Set the Fedora CA certificate:
-        if os.path.exists(self.ca_cert):
-            curl.setopt(pycurl.CAINFO, self.ca_cert)
-        else:
-            self.log.warn("Missing certificate: %s" % self.ca_cert)
-
-        return curl
-
-    def _do_curl(self, file_hash, file):
-        """Use curl manually to upload a file"""
-
-        # This is overloaded to add in the fedora user's cert
-        cmd = ['curl', '-k', '--cert', self.cert_file, '--fail', '-o',
-               '/dev/null', '--show-error', '--progress-bar', '-F',
-               'name=%s' % self.module_name,
-               '-F', '%ssum=%s' % (self.lookasidehash, file_hash),
-               '-F', 'file=@%s' % file]
-        if self.quiet:
-            cmd.append('-s')
-        cmd.append(self.lookaside_cgi)
-        self._run_command(cmd)
-
     def _findmasterbranch(self):
         """Find the right "fedora" for master"""
 

@@ -13,10 +13,16 @@
 import os
 import sys
 import logging
-import ConfigParser
 import argparse
 
+import six
+if six.PY3:  # SafeConfigParser == ConfigParser, former deprecated in >= 3.2
+    from six.moves.configparser import ConfigParser
+else:
+    from six.moves.configparser import SafeConfigParser as ConfigParser
+
 import pyrpkg
+import pyrpkg.utils
 import rfpkg
 
 
@@ -24,17 +30,18 @@ def main():
     # Setup an argparser and parse the known commands to get the config file
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('-C', '--config', help='Specify a config file to use',
-                        default='/etc/rpkg/rfpkg-free.conf')
+                        default='/etc/rpkg/rfpkg.conf')
 
     (args, other) = parser.parse_known_args()
 
     # Make sure we have a sane config file
-    if not os.path.exists(args.config) and not other[-1] in ['--help', '-h', 'help']:
+    if not os.path.exists(args.config) and \
+       not other[-1] in ['--help', '-h', 'help']:
         sys.stderr.write('Invalid config file %s\n' % args.config)
         sys.exit(1)
 
     # Setup a configuration object and read config file data
-    config = ConfigParser.SafeConfigParser()
+    config = ConfigParser()
     config.read(args.config)
 
     client = rfpkg.cli.rfpkgClient(config)
@@ -43,7 +50,7 @@ def main():
 
     if not client.args.path:
         try:
-            client.args.path = os.getcwd()
+            client.args.path = pyrpkg.utils.getcwd()
         except:
             print('Could not get current path, have you deleted it?')
             sys.exit(1)
@@ -68,8 +75,9 @@ def main():
         sys.exit(client.args.command())
     except KeyboardInterrupt:
         pass
-    except Exception, e:
-        log.error('Could not execute %s: %s' % (client.args.command.__name__, e))
+    except Exception as e:
+        log.error('Could not execute %s: %s' %
+                  (client.args.command.__name__, e))
         if client.args.v:
             raise
         sys.exit(1)

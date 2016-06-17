@@ -1,4 +1,5 @@
 include COPYING
+include src/rfpkg.conf
 include src/rfpkg-free.conf
 include src/rfpkg-nonfree.conf
 include src/rfpkg_man_page.py

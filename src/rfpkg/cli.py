@@ -61,6 +61,9 @@ class rfpkgClient(cliClient):
     # Target functions go here
     def retire(self):
         try:
+            module_name = self.cmd.module_name
+            ns_module_name = self.cmd.ns_module_name
+            namespace = ns_module_name.split(module_name)[0].rstrip('/')
             # Skip if package is already retired to allow to retire only in
             # pkgdb
             if os.path.isfile(os.path.join(self.cmd.path, 'dead.package')):

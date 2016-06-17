@@ -24,7 +24,7 @@ class Commands(pyrpkg.Commands):
 
     def __init__(self, path, lookaside, lookasidehash, lookaside_cgi,
                  gitbaseurl, anongiturl, branchre, kojiconfig,
-                 build_client, user=None, dist=None, target=None,
+                 build_client, user=None, dist=None, target=None, namespace=None,
                  quiet=False):
         """Init the object and some configuration details."""
 
@@ -62,6 +62,9 @@ class Commands(pyrpkg.Commands):
         self._ca_cert = None
         # Store this for later
         self._orig_kojiconfig = kojiconfig
+
+        # RPM Fusion default namespace
+        self.default_namespace = 'free'
 
     # Add new properties
     @property
@@ -133,23 +136,23 @@ class Commands(pyrpkg.Commands):
             self._distval = self.branch_merge.split('f')[1]
             self._distvar = 'fedora'
             self.dist = 'fc%s' % self._distval
-            self.mockconfig = 'fedora-%s-%s' % (self._distval, self.localarch)
-            self.override = 'f%s-override' % self._distval
+            self.mockconfig = 'fedora-%s-%s-rpmfusion_%s' % (self._distval, self.localarch, self.namespace)
+            self.override = 'f%s-%s-override' % (self._distval , self.namespace)
             self._distunset = 'rhel'
         # Works until RHEL 10
         elif re.match(r'el\d$', self.branch_merge) or re.match(r'epel\d$', self.branch_merge):
             self._distval = self.branch_merge.split('el')[1]
             self._distvar = 'rhel'
             self.dist = 'el%s' % self._distval
-            self.mockconfig = 'epel-%s-%s' % (self._distval, self.localarch)
-            self.override = 'epel%s-override' % self._distval
+            self.mockconfig = 'epel-%s-%s-rpmfusion_%s' % (self._distval, self.localarch, self.namespace)
+            self.override = 'epel%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'fedora'
         # master
         elif re.match(r'master$', self.branch_merge):
             self._distval = self._findmasterbranch()
             self._distvar = 'fedora'
             self.dist = 'fc%s' % self._distval
-            self.mockconfig = 'fedora-rawhide-%s' % self.localarch
+            self.mockconfig = 'fedora-rawhide-%s-rpmfusion_%s' % (self.localarch, self.namespace)
             self.override = None
             self._distunset = 'rhel'
         # If we don't match one of the above, punt

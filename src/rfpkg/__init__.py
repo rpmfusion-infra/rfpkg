@@ -68,6 +68,7 @@ class Commands(pyrpkg.Commands):
 
         # RPM Fusion default namespace
         self.default_namespace = 'free'
+        self.namespace = None
 
     # Add new properties
     @property
@@ -82,9 +83,9 @@ class Commands(pyrpkg.Commands):
     def namespace(self):
         """This property ensures the namespace attribute"""
 
-        if not self._namespace:
+        if not self.namespace:
             self.load_namespace()
-        return self._namespace
+        return self.namespace
 
     @kojiconfig.setter
     def kojiconfig(self, value):
@@ -198,9 +199,9 @@ class Commands(pyrpkg.Commands):
         """This creates the target attribute based on branch merge"""
 
         if self.branch_merge == 'master':
-            self._target = 'rawhide'
+            self._target = 'rawhide-%s' % self.namespace
         else:
-            self._target = '%s-candidate' % self.branch_merge
+            self._target = '%s-%s' % ( self.branch_merge , self.namespace)
 
     def load_user(self):
         """This sets the user attribute, based on the RPM Fusion SSL cert."""
@@ -214,9 +215,9 @@ class Commands(pyrpkg.Commands):
     def load_namespace(self):
         """This sets the namespace attribute."""
         if "nonfree" in self.remote:
-            self._namespace = 'nonfree'
+            self.namespace = 'nonfree'
         else:
-            self._namespace = self.default_namespace
+            self.namespace = self.default_namespace
 
 
     # New functionality

@@ -32,7 +32,15 @@ def main():
     parser.add_argument('-C', '--config', help='Specify a config file to use',
                         default='/etc/rpkg/rfpkg.conf')
 
+    parser.add_argument('--nonfree', action='store_true',
+                                 help='Interact with the nonfree modules ')
+
     (args, other) = parser.parse_known_args()
+
+
+    # The user specified, let's honour his wish
+    if args.nonfree:
+        namespace = 'nonfree'
 
     # Make sure we have a sane config file
     if not os.path.exists(args.config) and \

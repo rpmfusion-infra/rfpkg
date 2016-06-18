@@ -13,7 +13,7 @@ if not bashcompdir:
 
 setup(
     name="rfpkg",
-    version="1.23",
+    version="1.23.1",
     author="Nicolas Chauvet",
     author_email="kwizart@gmail.com",
     description=("RPM Fusion plugin to rpkg to manage "

@@ -79,14 +79,6 @@ class Commands(pyrpkg.Commands):
             self.load_kojiconfig()
         return self._kojiconfig
 
-    @property
-    def namespace(self):
-        """This property ensures the namespace attribute"""
-
-        if not self.namespace:
-            self.load_namespace()
-        return self.namespace
-
     @kojiconfig.setter
     def kojiconfig(self, value):
         self._kojiconfig = value
@@ -211,14 +203,6 @@ class Commands(pyrpkg.Commands):
             self.log.debug('Could not read RPM Fusion cert, falling back to '
                            'default method: %s' % e)
             super(Commands, self).load_user()
-
-    def load_namespace(self):
-        """This sets the namespace attribute."""
-        if "nonfree" in self.remote:
-            self.namespace = 'nonfree'
-        else:
-            self.namespace = self.default_namespace
-
 
     # New functionality
     def _findmasterbranch(self):

@@ -203,11 +203,11 @@ class Commands(pyrpkg.Commands):
             self._target = '%s-candidate' % self.branch_merge
 
     def load_user(self):
-        """This sets the user attribute, based on the Fedora SSL cert."""
+        """This sets the user attribute, based on the RPM Fusion SSL cert."""
         try:
             self._user = fedora_cert.read_user_cert()
         except Exception as e:
-            self.log.debug('Could not read Fedora cert, falling back to '
+            self.log.debug('Could not read RPM Fusion cert, falling back to '
                            'default method: %s' % e)
             super(Commands, self).load_user()
 

@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011 Red Hat Inc.
 # Author(s): Jesse Keating <jkeating@redhat.com>
-#            Nicolas Chauvet <kwizart@gmail.com>
+# Copyright (C) 2016 - Nicolas Chauvet <kwizart@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -17,6 +17,7 @@ import git
 import re
 import fedora_cert
 import platform
+import urlparse
 
 from .lookaside import RPMFusionLookasideCache
 from pyrpkg.utils import cached_property
@@ -69,6 +70,7 @@ class Commands(pyrpkg.Commands):
         # RPM Fusion default namespace
         self.default_namespace = 'free'
         self.namespace = None
+        self.hashtype = 'md5'
 
     # Add new properties
     @property
@@ -122,15 +124,37 @@ class Commands(pyrpkg.Commands):
         """
         return os.path.expanduser('~/.rpmfusion-server-ca.cert')
 
+    def load_ns_module_name(self):
+        """Loads a RPM Fusion package module."""
+
+        if self.push_url:
+            parts = urlparse.urlparse(self.push_url)
+
+            if self.distgit_namespaced:
+                path_parts = [p for p in parts.path.split("/") if p]
+                ns_module_name = "/".join(path_parts[-2:])
+                _ns = path_parts[1]
+
+            if ns_module_name.endswith('.git'):
+                ns_module_name = ns_module_name[:-len('.git')]
+            if ns_module_name.startswith('git'):
+                ns_module_name = ns_module_name[:-len('git')]
+            self._ns_module_name = ns_module_name
+            self.namespace = _ns
+            return
+
     @cached_property
     def lookasidecache(self):
         """A helper to interact with the lookaside cache
 
         We override this because we need a different download path.
         """
+        self.load_ns_module_name()
+        self._cert_file = os.path.expanduser('~/.rpmfusion.cert')
+
         return RPMFusionLookasideCache(
-            self.lookasidehash, self.lookaside, self.lookaside_cgi, namespace=namespace,
-            client_cert=self.cert_file, ca_cert=self.ca_cert)
+            self.lookasidehash, self.lookaside, self.lookaside_cgi,
+            client_cert=self._cert_file, ca_cert=self._ca_cert, namespace=self.namespace)
 
     # Overloaded property loaders
     def load_rpmdefines(self):
@@ -138,6 +162,7 @@ class Commands(pyrpkg.Commands):
 
         # Determine runtime environment
         self._runtime_disttag = self._determine_runtime_env()
+        self.load_ns_module_name()
 
         # We only match the top level branch name exactly.
         # Anything else is too dangerous and --dist should be used
@@ -190,6 +215,7 @@ class Commands(pyrpkg.Commands):
     def load_target(self):
         """This creates the target attribute based on branch merge"""
 
+        self.load_ns_module_name()
         if self.branch_merge == 'master':
             self._target = 'rawhide-%s' % self.namespace
         else:
@@ -210,7 +236,7 @@ class Commands(pyrpkg.Commands):
 
         # If we already have a koji session, just get data from the source
         if self._kojisession:
-            rawhidetarget = self.kojisession.getBuildTarget('rawhide')
+            rawhidetarget = self.kojisession.getBuildTarget('rawhide-free')
             desttag = rawhidetarget['dest_tag_name']
             return desttag.replace('f', '')
 
@@ -240,10 +266,10 @@ class Commands(pyrpkg.Commands):
             # We may not have Fedoras.  Find out what rawhide target does.
             try:
                 rawhidetarget = self.anon_kojisession.getBuildTarget(
-                    'rawhide')
+                    'rawhide-free')
             except:
                 # We couldn't hit koji, bail.
-                raise pyrpkg.rpkgError('Unable to query koji to find rawhide \
+                raise pyrpkg.rpkgError('Unable to query koji to find rawhide-free \
                                        target')
             desttag = rawhidetarget['dest_tag_name']
             return desttag.replace('f', '')

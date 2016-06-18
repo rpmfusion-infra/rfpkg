@@ -137,7 +137,7 @@ class Commands(pyrpkg.Commands):
         We override this because we need a different download path.
         """
         return RPMFusionLookasideCache(
-            self.lookasidehash, self.lookaside, self.lookaside_cgi,namespace=namespace,
+            self.lookasidehash, self.lookaside, self.lookaside_cgi, namespace=namespace,
             client_cert=self.cert_file, ca_cert=self.ca_cert)
 
     # Overloaded property loaders
@@ -155,7 +155,7 @@ class Commands(pyrpkg.Commands):
             self._distvar = 'fedora'
             self.dist = 'fc%s' % self._distval
             self.mockconfig = 'fedora-%s-%s-rpmfusion_%s' % (self._distval, self.localarch, self.namespace)
-            self.override = 'f%s-%s-override' % (self._distval , self.namespace)
+            self.override = 'f%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'rhel'
         # Works until RHEL 10
         elif re.match(r'el\d$', self.branch_merge) or re.match(r'epel\d$', self.branch_merge):

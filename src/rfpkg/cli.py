@@ -33,7 +33,6 @@ class rfpkgClient(cliClient):
 
         self.register_retire()
         self.register_update()
-        self.register_namespace()
 
     # Target registry goes here
     def register_retire(self):
@@ -58,12 +57,6 @@ class rfpkgClient(cliClient):
                         'current package n-v-r.'
         )
         update_parser.set_defaults(command=self.update)
-
-    def register_namespace(self):
-        """Register the namespace argument"""
-
-        parser.add_argument('--nonfree', action='store_true',
-                                 help='Interact with the nonfree modules ')
 
     # Target functions go here
     def retire(self):

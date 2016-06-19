@@ -24,6 +24,10 @@ class RPMFusionLookasideCache(CGILookasideCache):
             hashtype, download_url, upload_url, client_cert=client_cert,
             ca_cert=ca_cert)
 
-        self.download_path = (
-            namespace + '/%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s')
+        if hashtype == 'md5':
+            self.download_path = (
+                namespace + '/%(name)s/%(filename)s/%(hash)s/%(filename)s')
+        else:
+            self.download_path = (
+                namespace + '/%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s')
 

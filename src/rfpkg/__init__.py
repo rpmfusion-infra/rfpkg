@@ -137,8 +137,6 @@ class Commands(pyrpkg.Commands):
 
             if ns_module_name.endswith('.git'):
                 ns_module_name = ns_module_name[:-len('.git')]
-            if ns_module_name.startswith('git'):
-                ns_module_name = ns_module_name[:-len('git')]
             self._ns_module_name = ns_module_name
             self.namespace = _ns
             return

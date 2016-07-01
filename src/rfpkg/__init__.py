@@ -230,47 +230,19 @@ class Commands(pyrpkg.Commands):
 
     # New functionality
     def _findmasterbranch(self):
-        """Find the right "fedora" for master"""
+        """Find the right "rpmfusion" for master"""
 
         # If we already have a koji session, just get data from the source
         if self._kojisession:
             rawhidetarget = self.kojisession.getBuildTarget('rawhide-free')
             desttag = rawhidetarget['dest_tag_name']
+            desttag=desttag.split('-')
+            desttag.remove('free')
+            desttag=''.join(desttag)
             return desttag.replace('f', '')
-
-        # Create a list of "fedoras"
-        fedoras = []
-
-        # Create a regex to find branches that exactly match f##.  Should not
-        # catch branches such as f14-foobar
-        branchre = 'f\d\d$'
-
-        # Find the repo refs
-        for ref in self.repo.refs:
-            # Only find the remote refs
-            if type(ref) == git.RemoteReference:
-                # Search for branch name by splitting off the remote
-                # part of the ref name and returning the rest.  This may
-                # fail if somebody names a remote with / in the name...
-                if re.match(branchre, ref.name.split('/', 1)[1]):
-                    # Add just the simple f## part to the list
-                    fedoras.append(ref.name.split('/')[1])
-        if fedoras:
-            # Sort the list
-            fedoras.sort()
-            # Start with the last item, strip the f, add 1, return it.
-            return(int(fedoras[-1].strip('f')) + 1)
         else:
-            # We may not have Fedoras.  Find out what rawhide target does.
-            try:
-                rawhidetarget = self.anon_kojisession.getBuildTarget(
-                    'rawhide-free')
-            except:
-                # We couldn't hit koji, bail.
-                raise pyrpkg.rpkgError('Unable to query koji to find rawhide-free \
-                                       target')
-            desttag = rawhidetarget['dest_tag_name']
-            return desttag.replace('f', '')
+            return '25'
+
 
     def _determine_runtime_env(self):
         """Need to know what the runtime env is, so we can unset anything

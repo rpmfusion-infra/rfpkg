@@ -133,7 +133,7 @@ class Commands(pyrpkg.Commands):
             if self.distgit_namespaced:
                 path_parts = [p for p in parts.path.split("/") if p]
                 ns_module_name = "/".join(path_parts[-2:])
-                _ns = path_parts[1]
+                _ns = path_parts[0]
 
             if ns_module_name.endswith('.git'):
                 ns_module_name = ns_module_name[:-len('.git')]

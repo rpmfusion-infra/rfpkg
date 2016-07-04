@@ -13,7 +13,7 @@ if not bashcompdir:
 
 setup(
     name="rfpkg",
-    version="1.23.3",
+    version="1.23.4",
     author="Nicolas Chauvet",
     author_email="kwizart@gmail.com",
     description=("RPM Fusion plugin to rpkg to manage "
@@ -24,6 +24,6 @@ setup(
     packages=['rfpkg'],
     scripts=['src/bin/rfpkg'],
     data_files=[(bashcompdir, ['src/bash-completion/rfpkg']),
-                ('/etc/rpkg', ['src/rfpkg.conf', 'src/rfpkg-free.conf', 'src/rfpkg-nonfree.conf']),
+                ('/etc/rpkg', ['src/rfpkg.conf']),
                 ],
 )

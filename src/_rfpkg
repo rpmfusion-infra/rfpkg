@@ -1,0 +1,441 @@
+#compdef rfpkg
+
+(( $+functions[_rfpkg_targets] )) ||
+_rfpkg_targets()
+{
+  local expl
+
+  _wanted koji-targets expl 'target' compadd \
+    ${${(f)"$(_call_program koji-targets koji list-targets --quiet 2>/dev/null)"}%% *}
+}
+
+(( $+functions[_rfpkg_arches] )) ||
+_rfpkg_arches()
+{
+  local expl
+  local -a arches
+
+  arches=( /etc/mock/[^-]##-[^-]##-[^-]##.cfg )
+  _wanted mock-arches expl 'arch' compadd \
+    ${(u)${arches#/etc/mock/[^-]##-[^-]##-}%.cfg}
+}
+
+(( $+functions[_rfpkg_packages] )) ||
+_rfpkg_packages()
+{
+  local expl
+
+  _wanted repo-packages expl 'package' compadd \
+    ${${(fu)"$(repoquery -Cs -- "$words[CURRENT]*")"}%-[^-]##-[^-]##.src.rpm}
+}
+
+(( $+functions[_rfpkg_branches] )) ||
+_rfpkg_branches()
+{
+  local expl
+  local -a git_opts
+  local -a branches
+
+  (( ${words[(I)--path]} )) &&
+    git_opts=( --git-dir ${words[${words[(i)--path]}+1]} )
+
+  branches=(${${(f)"$(git $git_opts for-each-ref --format='%(refname)' refs/heads 2>/dev/null)"}#refs/heads/})
+  branches+=(${${(f)"$(git $git_opts for-each-ref --format='%(refname)' refs/remotes 2>/dev/null)"}##refs/remotes/*/})
+
+  _wanted branch-names expl 'branch-name' compadd \
+    ${(u)branches}
+}
+
+(( $+functions[_rfpkg-help] )) ||
+_rfpkg-help () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg-build] )) ||
+_rfpkg-build () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--arches[build for specific arches]:*:arch:_rfpkg_arches' \
+    '--md5[use md5 checksums]' \
+    '--nowait[don'\''t wait on build]' \
+    '--target[define build target to build into]:target:_rfpkg_targets' \
+    '--background[run the build at a low priority]' \
+    '--skip-tag[do not attempt to tag package]' \
+    '--scratch[perform a scratch build]' \
+    '--srpm[build from an srpm]::srpm:_files -g "*.src.rpm"'
+}
+
+(( $+functions[_rfpkg-chain-build] )) ||
+_rfpkg-chain-build () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--arches[build for specific arches]:*:arch:_rfpkg_arches' \
+    '--md5[use md5 checksums]' \
+    '--nowait[on'\''t wait on build]' \
+    '--target[define build target to build into]:target:_rfpkg_targets' \
+    '--background[run the build at a low priority]' \
+    '*:package:_rfpkg_packages'
+}
+
+(( $+functions[_rfpkg-clean] )) ||
+_rfpkg-clean () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(-n --dry-run)'{-n,--dry-run}'[perform a dry-run]' \
+    '-x[do not follow .gitignore rules]'
+}
+
+(( $+functions[_rfpkg-clog] )) ||
+_rfpkg-clog () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--raw[generate a more "raw" clog without twiddling the contents]'
+}
+
+(( $+functions[_rfpkg-clone] )) ||
+_rfpkg-clone () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(-B --branches)'{-B,--branches}'[do an old style checkout with subdirs for branches]' \
+    '(-b --branch)'{-b,--branch}'[check out a specific branch]:branch:_rfpkg_branches' \
+    '(-a --anonymous)'{-a,--anonymous}'[check out a module anonymously]' \
+    ':package:_rfpkg_packages'
+}
+
+(( $+functions[_rfpkg-commit] )) ||
+_rfpkg-commit () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(-c --clog)'{-c,--clog}'[generate the commit message from the %changelog section]' \
+    '--raw[make the clog raw]' \
+    '(-t --tag)'{-t,--tag}'[create a tag for this commit]' \
+    '(-m --message)'{-m,--message}'[use the given commit message]:message' \
+    '(-F --file)'{-F,--file}'[take the commit message from the given file]:file:_files' \
+    '(-p --push)'{-p,--push}'[commit and push as one action]' \
+    '*:file:_files'
+}
+
+(( $+functions[_rfpkg-compile] )) ||
+_rfpkg-compile () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--builddir[define an alternate builddir]:builddir:_files -/' \
+    '--arch[prep for a specific arch]:arch:_rfpkg_arches' \
+    '--short-circuit[short-circuit compile]'
+}
+
+(( $+functions[_rfpkg-copr-build] )) ||
+_rfpkg-copr-build () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--nowait[on'\''t wait on build]' \
+    '*:project'
+}
+
+(( $+functions[_rfpkg-diff] )) ||
+_rfpkg-diff () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--cached[view staged changes]' \
+    '*:file:_files'
+}
+
+(( $+functions[_rfpkg-gimmespec] )) ||
+_rfpkg-gimmespec () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg-gitbuildhash] )) ||
+_rfpkg-gitbuildhash () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    ':build'
+}
+
+(( $+functions[_rfpkg-giturl] )) ||
+_rfpkg-giturl () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg-import] )) ||
+_rfpkg-import () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    ':srpm:_files -g "*.src.rpm"'
+}
+
+(( $+functions[_rfpkg-install] )) ||
+_rfpkg-install () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--builddir[define an alternate builddir]:builddir:_files -/' \
+    '--arch[prep for a specific arch]:arch:_rfpkg_arches' \
+    '--short-circuit[short-circuit compile]'
+}
+
+(( $+functions[_rfpkg-lint] )) ||
+_rfpkg-lint () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(-i --info)'{-i,--info}'[display explanations for reported messages]' \
+    '(-r --rpmlintconf)'{-r,--rpmlintconf}'[use a specific configuration file for rpmlint]:rpmlintconf:_files'
+}
+
+(( $+functions[_rfpkg-local] )) ||
+_rfpkg-local () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--builddir[define an alternate builddir]:builddir:_files -/' \
+    '--arch[prep for a specific arch]:arch:_rfpkg_arches' \
+    '--md5[use md5 checksums]'
+}
+
+(( $+functions[_rfpkg-mockbuild] )) ||
+_rfpkg-mockbuild () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--root[override mock root]:root:_files -/' \
+    '--md5[use md5 checksums]'
+}
+
+(( $+functions[_rfpkg-mock-config] )) ||
+_rfpkg-mock-config () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--target[override target used for config]:target:_rfpkg_targets'
+    '--arch[override local arch]:arch:_rfpkg_arches'
+}
+
+(( $+functions[_rfpkg-new] )) ||
+_rfpkg-new () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg-new-sources] )) ||
+_rfpkg-new-sources () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '*:file:_files'
+}
+
+(( $+functions[_rfpkg-patch] )) ||
+_rfpkg-patch () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--rediff[recreate gendiff file retaining comments]' \
+    ':suffix'
+}
+
+(( $+functions[_rfpkg-prep] )) ||
+_rfpkg-prep () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--builddir[define an alternate builddir]:builddir:_files -/' \
+    '--arch[prep for a specific arch]:arch:_rfpkg_arches'
+}
+
+(( $+functions[_rfpkg-pull] )) ||
+_rfpkg-pull () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(--no-rebase)--rebase[rebase the locally committed changes on top of the remote changes]' \
+    '(--rebase)--no-rebase[do not rebase, override .git settings to automatically rebase]'
+}
+
+(( $+functions[_rfpkg-push] )) ||
+_rfpkg-push () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg-scratch-build] )) ||
+_rfpkg-scratch-build () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--arches[build for specific arches]:*:arch:_rfpkg_arches' \
+    '--md5[use md5 checksums]' \
+    '--nowait[on'\''t wait on build]' \
+    '--target[define build target to build into]:target:_rfpkg_targets' \
+    '--background[run the build at a low priority]' \
+    '--srpm[build from an srpm]::srpm:_files -g "*.src.rpm"'
+}
+
+(( $+functions[_rfpkg-sources] )) ||
+_rfpkg-sources () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--outdir[directory to download files into]:outdir:_files -/'
+}
+
+(( $+functions[_rfpkg-srpm] )) ||
+_rfpkg-srpm () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--md5[use md5 checksums]'
+}
+
+(( $+functions[_rfpkg-switch-branch] )) ||
+_rfpkg-switch-branch () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(: -l --list)'{-l,--list}'[list both remote-tracking branches and local branches]' \
+    '(-):branch:_rfpkg_branches'
+}
+
+(( $+functions[_rfpkg-tag] )) ||
+_rfpkg-tag () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(-f --force)'{-f,--force}'[force the creation of the tag]' \
+    '(-m --message)'{-m,--message}'[use the given commit message]:message' \
+    '(-c --clog)'{-c,--clog}'[generate the commit message from the %changelog section]' \
+    '--raw[make the clog raw]' \
+    '(-F --file)'{-F,--file}'[take the commit message from the given file]:file:_files' \
+    '(-l --list)'{-l,--list}'[list all tags with a given pattern]' \
+    '(-d --delete)'{-d,--delete}'[delete a tag]' \
+    ':tag'
+}
+
+(( $+functions[_rfpkg-unused-patches] )) ||
+_rfpkg-unused-patches () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg-upload] )) ||
+_rfpkg-upload () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '*:file:_files'
+}
+
+(( $+functions[_rfpkg-verify-files] )) ||
+_rfpkg-verify-files () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '--builddir[define an alternate builddir]:builddir:_files -/' \
+    '--arch[prep for a specific arch]:arch:_rfpkg_arches'
+}
+
+(( $+functions[_rfpkg-verrel] )) ||
+_rfpkg-verrel () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg-retire] )) ||
+_rfpkg-retire () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]' \
+    '(-p --push)'{-p,--push}'[push changes to remote repository]' \
+    ':message'
+}
+
+(( $+functions[_rfpkg-update] )) ||
+_rfpkg-update () {
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+}
+
+(( $+functions[_rfpkg_commands] )) ||
+_rfpkg_commands () {
+  local -a rfpkg_commands
+  rfpkg_commands=(
+    help:'show usage'
+    build:'request build'
+    chain-build:'build current package in order with other packages'
+    clean:'remove untracked files'
+    clog:'make a clog file containing top changelog entry'
+    clone:'clone and checkout a module'
+    commit:'commit changes'
+    compile:'local test rpmbuild compile'
+    copr-build:'build package in Copr'
+    diff:'show changes between commits, commit and working tree, etc'
+    gimmespec:'print the spec file name'
+    gitbuildhash:'print the git hash used to build the provided n-v-r'
+    giturl:'print the git url for building'
+    import:'import srpm content into a module'
+    install:'local test rpmbuild install'
+    lint:'run rpmlint against local spec and build output if present'
+    local:'local test rpmbuild binary'
+    mockbuild:'local test build using mock'
+    mock-config:'generate a mock config'
+    new:'diff against last tag'
+    new-sources:'upload new source files'
+    patch:'create and add a gendiff patch file'
+    prep:'local test rpmbuild prep'
+    pull:'pull changes from remote repository and update working copy'
+    push:'push changes to remote repository'
+    scratch-build:'request scratch build'
+    sources:'download source files'
+    srpm:'create a source rpm'
+    switch-branch:'work with branches'
+    tag:'management of git tags'
+    unused-patches:'print list of patches not referenced by name in the specfile'
+    upload:'upload source files'
+    verify-files:'locally verify %files section'
+    verrel:'print the name-version-release'
+    retire:'retire a package'
+    update:'submit last build as an update'
+  )
+
+  integer ret=1
+
+  # TODO: Is this the correct way of doing it?  Should we be using _alternative
+  # and separate functions for each set of commands instead?
+  _describe -t rfpkg-commands 'rfpkg command' rfpkg_commands && ret=0
+
+  return ret
+}
+
+_rfpkg() {
+  local -A rfpkg_aliases
+  rfpkg_aliases=(
+    co clone
+    ci commit
+  )
+  integer ret=1
+
+  local curcontext=$curcontext state line
+  declare -A opt_args
+
+  _arguments -C \
+    '(- :)'{-h,--help}'[show help message and exit]' \
+    '(-C --config)'{-C,--config}'[specify a config file to use]:config file:_files' \
+    '--dist[override the discovered distribution]:distribution' \
+    '--user[override the discovered user name]:user' \
+    '--path[define the directory to work in (defaults to cwd)]:working direcory:_directories' \
+    '(-q)-v[run with verbose debug output]' \
+    '(-v)-q[run quietly only displaying errors]' \
+    '(-): :->command' \
+    '(-)*:: :->option-or-argument' && return
+
+  case $state in
+    (command)
+      _rfpkg_commands && ret=0
+      ;;
+    (option-or-argument)
+      local cmd=$words[1]
+      (( $+rfpkg_aliases[$cmd] )) &&
+        cmd=$rfpkg_aliases[$cmd]
+
+      curcontext=${curcontext%:*:*}:rfpkg-$cmd:
+
+      if (( $+functions[_rfpkg-$cmd] )); then
+        _call_function ret _rfpkg-$cmd
+      elif zstyle -T :completion:$curcontext: use-fallback; then
+        _files && ret=0
+      else
+        _message 'unknown sub-command'
+      fi
+      ;;
+  esac
+
+  return ret
+}
+
+_rfpkg

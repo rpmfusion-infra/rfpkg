@@ -29,14 +29,16 @@ _rfpkg()
         cur="${COMP_WORDS[COMP_CWORD]}"
         prev="${COMP_WORDS[COMP_CWORD-1]}"
     fi
-    
+
     # global options
 
     local options="--help -v -q"
     local options_value="--dist --user --path"
-    local commands="build chain-build ci clean clog clone co commit compile diff gimmespec giturl help \
-    gitbuildurl import install lint local mockbuild mock-config new new-sources patch prep pull push retire scratch-build sources \
-    srpm switch-branch tag unused-patches update upload verify-files verrel"
+    local commands="build chain-build ci clean clog clone co commit compile \
+    container-build diff gimmespec giturl help gitbuildhash import install lint \
+    local mockbuild mock-config new new-sources patch prep pull push retire \
+    scratch-build sources srpm switch-branch tag unused-patches update upload \
+    verify-files verrel"
 
     # parse main options and get command
 
@@ -88,11 +90,11 @@ _rfpkg()
     # parse command specific options
 
     local options=
-    local options_target= options_arches= options_branch= options_string= options_file= options_dir= options_srpm= options_mroot=
+    local options_target= options_arches= options_branch= options_string= options_file= options_dir= options_srpm= options_mroot= options_builder=
     local after= after_more=
 
     case $command in
-        help|gimmespec|gitbuildurl|giturl|lint|new|push|unused-patches|update|verrel)
+        help|gimmespec|gitbuildhash|giturl|lint|new|push|unused-patches|update|verrel)
             ;;
         build)
             options="--nowait --background --skip-tag --scratch"
@@ -127,6 +129,11 @@ _rfpkg()
             options="--short-circuit"
             options_arch="--arch"
             options_dir="--builddir"
+            ;;
+        container-build)
+            options="--scratch"
+            options_target="--target"
+            options_builder="--build-with"
             ;;
         diff)
             options="--cached"
@@ -197,7 +204,7 @@ _rfpkg()
     esac
 
     local all_options="--help $options"
-    local all_options_value="$options_target $options_arches $options_branch $options_string $options_file $options_dir $options_srpm $options_mroot"
+    local all_options_value="$options_target $options_arches $options_branch $options_string $options_file $options_dir $options_srpm $options_mroot $options_builder"
 
     # count non-option parameters
 
@@ -226,6 +233,9 @@ _rfpkg()
 
     elif [[ -n $options_arches ]] && in_array "$last_option" "$options_arches"; then
         COMPREPLY=( $(compgen -W "$(_rfpkg_arch) $all_options" -- "$cur") )
+
+    elif [[ -n $options_builder ]] && in_array "$prev" "$options_builder"; then
+        COMPREPLY=( $(compgen -W "$(_rfpkg_builder)" -- "$cur") )
 
     elif [[ -n $options_srpm ]] && in_array "$prev" "$options_srpm"; then
         _filedir_exclude_paths "*.src.rpm"
@@ -284,6 +294,11 @@ _rfpkg_arch()
     echo "i386 i686 x86_64 armv5tel armv7hl armv7hnl ppc ppc64 ppc64p7 s390 s390x"
 }
 
+_rfpkg_builder()
+{
+    echo "koji osbs"
+}
+
 _rfpkg_branch()
 {
     local git_options= format="--format %(refname:short)"
@@ -293,7 +308,7 @@ _rfpkg_branch()
     git $git_options for-each-ref $format 'refs/heads'
 }
 
-_rfpkg_package()
+rfpkg_package()
 {
     repoquery -C --qf=%{sourcerpm} "$1*" 2>/dev/null | sort -u | sed -r 's/(-[^-]*){2}\.src\.rpm$//'
 }

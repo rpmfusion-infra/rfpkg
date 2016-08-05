@@ -241,7 +241,7 @@ class Commands(pyrpkg.Commands):
             desttag=''.join(desttag)
             return desttag.replace('f', '')
         else:
-            return '25'
+            return '26'
 
 
     def _determine_runtime_env(self):

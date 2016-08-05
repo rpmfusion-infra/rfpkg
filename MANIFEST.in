@@ -1,4 +1,6 @@
 include COPYING
+include src/_rfpkg
+include src/rfpkg.bash
 include src/rfpkg.conf
 include src/rfpkg_man_page.py
-include src/bash-completion/rfpkg
+include test/rfpkg-test.conf

@@ -76,7 +76,7 @@ class rfpkgClient(cliClient):
 
             branch = self.cmd.branch_merge
             pkgdb = pkgdb2client.PkgDB(
-                login_callback=pkgdb2client.ask_password)
+                login_callback=pkgdb2client.ask_password, url="https://admin.rpmfusion.org/pkgdb")
             pkgdb.retire_packages(module_name, branch, namespace=namespace)
         except Exception as e:
             self.log.error('Could not retire package: %s' % e)

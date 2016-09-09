@@ -17,7 +17,9 @@ import git
 import re
 import fedora_cert
 import platform
+import subprocess
 import urlparse
+
 
 from .lookaside import RPMFusionLookasideCache
 from pyrpkg.utils import cached_property
@@ -241,8 +243,16 @@ class Commands(pyrpkg.Commands):
             desttag=''.join(desttag)
             return desttag.replace('f', '')
         else:
-            return '26'
-
+            # We may not have Fedoras.  Find out what rawhide target does.
+            try:
+                rawhidetarget = self.anon_kojisession.getBuildTarget(
+                    'rawhide-free')
+            except:
+                # We couldn't hit koji, bail.
+                raise pyrpkg.rpkgError('Unable to query koji to find rawhide \
+                                       target')
+            desttag = rawhidetarget['dest_tag_name']
+            return desttag.replace('f', '')
 
     def _determine_runtime_env(self):
         """Need to know what the runtime env is, so we can unset anything
@@ -299,10 +309,20 @@ class Commands(pyrpkg.Commands):
     def update(self, template='bodhi.template', bugs=[]):
         """Submit an update to bodhi using the provided template."""
 
-        # build up the bodhi arguments
-        cmd = ['bodhi', '--new', '--release', self.branch_merge,
-               '--file', 'bodhi.template', self.nvr, '--username',
-               self.user]
+        # build up the bodhi arguments, based on which version of bodhi is
+        # installed
+        bodhi_major_version = _get_bodhi_version()[0]
+        if bodhi_major_version < 2:
+            cmd = ['bodhi', '--new', '--release', self.branch_merge,
+                   '--file', 'bodhi.template', self.nvr, '--username',
+                   self.user]
+        elif bodhi_major_version == 2:
+            cmd = ['bodhi', 'updates', 'new', '--file', 'bodhi.template',
+                   '--user', self.user, self.nvr]
+        else:
+            msg = 'This system has bodhi v{0}, which is unsupported.'
+            msg = msg.format(bodhi_major_version)
+            raise Exception(msg)
         self._run_command(cmd, shell=True)
 
     def load_kojisession(self, anon=False):
@@ -315,6 +335,17 @@ class Commands(pyrpkg.Commands):
                           "_system#Fedora_Account_System_.28FAS2.29_Setup")
             raise
 
+
+def _get_bodhi_version():
+    """
+    Use bodhi --version to determine the version of the Bodhi CLI that's
+    installed on the system, then return a list of the version components.
+    For example, if bodhi --version returns "2.1.9", this function will return
+    [2, 1, 9].
+    """
+    bodhi = subprocess.Popen(['bodhi', '--version'], stdout=subprocess.PIPE)
+    version = bodhi.communicate()[0].strip()
+    return [int(component) for component in version.split('.')]
 
 
 if __name__ == "__main__":

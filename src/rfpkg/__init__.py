@@ -252,6 +252,9 @@ class Commands(pyrpkg.Commands):
                 raise pyrpkg.rpkgError('Unable to query koji to find rawhide \
                                        target')
             desttag = rawhidetarget['dest_tag_name']
+            desttag=desttag.split('-')
+            desttag.remove('free')
+            desttag=''.join(desttag)
             return desttag.replace('f', '')
 
     def _determine_runtime_env(self):

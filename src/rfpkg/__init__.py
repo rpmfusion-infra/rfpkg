@@ -29,8 +29,7 @@ class Commands(pyrpkg.Commands):
 
     def __init__(self, path, lookaside, lookasidehash, lookaside_cgi,
                  gitbaseurl, anongiturl, branchre, kojiconfig,
-                 build_client, user=None, dist=None, target=None,
-                 quiet=False, distgit_namespaced=False, realms=None):
+                 build_client, **kwargs):
         """Init the object and some configuration details."""
 
         # We are subclassing to set kojiconfig to none, so that we can
@@ -38,9 +37,7 @@ class Commands(pyrpkg.Commands):
         super(Commands, self).__init__(path, lookaside, lookasidehash,
                                        lookaside_cgi, gitbaseurl, anongiturl,
                                        branchre, kojiconfig, build_client,
-                                       user=user, dist=dist, target=target,
-                                       quiet=quiet,
-                                       distgit_namespaced=distgit_namespaced)
+                                       **kwargs)
 
         # New data
         self.secondary_arch = {

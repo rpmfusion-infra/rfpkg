@@ -308,7 +308,7 @@ _rfpkg_branch()
     git $git_options for-each-ref $format 'refs/heads'
 }
 
-rfpkg_package()
+_rfpkg_package()
 {
     repoquery -C --qf=%{sourcerpm} "$1*" 2>/dev/null | sort -u | sed -r 's/(-[^-]*){2}\.src\.rpm$//'
 }

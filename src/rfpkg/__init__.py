@@ -15,7 +15,7 @@ import os
 import cli
 import git
 import re
-import fedora_cert
+import rpmfusion_cert
 import platform
 import subprocess
 import urlparse
@@ -221,7 +221,7 @@ class Commands(pyrpkg.Commands):
     def load_user(self):
         """This sets the user attribute, based on the RPM Fusion SSL cert."""
         try:
-            self._user = fedora_cert.read_user_cert()
+            self._user = rpmfusion_cert.read_user_cert()
         except Exception as e:
             self.log.debug('Could not read RPM Fusion cert, falling back to '
                            'default method: %s' % e)

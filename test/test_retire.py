@@ -74,7 +74,7 @@ class RetireTestCase(unittest.TestCase):
     @mock.patch('pkgdb2client.PkgDB')
     def test_retire_with_namespace(self, PkgDB):
         self._setup_repo('ssh://git@pkgs.example.com/rpms/rfpkg')
-        args = ['rfpkg', '--dist=master', 'retire', 'my reason']
+        args = ['rfpkg', '--release=master', 'retire', 'my reason']
 
         client = self._fake_client(args)
         client.retire()
@@ -88,7 +88,7 @@ class RetireTestCase(unittest.TestCase):
     @mock.patch('pkgdb2client.PkgDB')
     def test_retire_without_namespace(self, PkgDB, read_user_cert):
         self._setup_repo('ssh://git@pkgs.example.com/rfpkg')
-        args = ['rfpkg', '--dist=master', 'retire', 'my reason']
+        args = ['rfpkg', '--release=master', 'retire', 'my reason']
 
         read_user_cert.return_value = 'packager'
 

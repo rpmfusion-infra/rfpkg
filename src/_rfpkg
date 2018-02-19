@@ -407,6 +407,7 @@ _rfpkg() {
     '(- :)'{-h,--help}'[show help message and exit]' \
     '(-C --config)'{-C,--config}'[specify a config file to use]:config file:_files' \
     '--dist[override the discovered distribution]:distribution' \
+    '--release[override the discovered release]:release' \
     '--user[override the discovered user name]:user' \
     '--path[define the directory to work in (defaults to cwd)]:working direcory:_directories' \
     '(-q)-v[run with verbose debug output]' \

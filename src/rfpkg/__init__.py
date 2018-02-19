@@ -159,7 +159,7 @@ class Commands(pyrpkg.Commands):
         self.load_ns_module_name()
 
         # We only match the top level branch name exactly.
-        # Anything else is too dangerous and --dist should be used
+        # Anything else is too dangerous and --release should be used
         # This regex works until after Fedora 99.
         if re.match(r'f\d\d$', self.branch_merge):
             self._distval = self.branch_merge.split('f')[1]
@@ -186,8 +186,8 @@ class Commands(pyrpkg.Commands):
             self._distunset = 'rhel'
         # If we don't match one of the above, punt
         else:
-            raise pyrpkg.rpkgError('Could not find the dist from branch name '
-                                   '%s\nPlease specify with --dist' %
+            raise pyrpkg.rpkgError('Could not find the release/dist from branch name '
+                                   '%s\nPlease specify with --release' %
                                    self.branch_merge)
         self._rpmdefines = ["--define '_sourcedir %s'" % self.path,
                             "--define '_specdir %s'" % self.path,

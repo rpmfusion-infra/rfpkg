@@ -19,6 +19,7 @@ import rpmfusion_cert
 import platform
 import subprocess
 import urlparse
+import koji
 
 
 from .lookaside import RPMFusionLookasideCache
@@ -333,14 +334,47 @@ class Commands(pyrpkg.Commands):
         self._run_command(cmd, shell=True)
 
     def load_kojisession(self, anon=False):
+        """Initiate a koji session.
+
+        The koji session can be logged in or anonymous
+        """
+        koji_config = self.read_koji_config()
+
+        # Expand out the directory options
+        for name in ('cert', 'ca', 'serverca'):
+            path = koji_config[name]
+            if path:
+                koji_config[name] = os.path.expanduser(path)
+
+        # save the weburl and topurl for later use as well
+        self._kojiweburl = koji_config['weburl']
+        self._topurl = koji_config['topurl']
+
+        self.log.debug('Initiating a %s session to %s',
+                       os.path.basename(self.build_client), koji_config['server'])
+
+        # Build session options used to create instance of ClientSession
+        session_opts = koji.grab_session_options(koji_config)
+
         try:
-            return super(Commands, self).load_kojisession(anon)
-        except pyrpkg.rpkgAuthError:
-            self.log.info("You might want to run rpmfusion-packager-setup to "
-                          "regenerate SSL certificate. For more info see "
-                          "https://fedoraproject.org/wiki/Using_the_Koji_build"
-                          "_system#Fedora_Account_System_.28FAS2.29_Setup")
-            raise
+            session = koji.ClientSession(koji_config['server'], session_opts)
+        except Exception:
+            raise rpkgError('Could not initiate %s session' % os.path.basename(self.build_client))
+        else:
+            if anon:
+                self._anon_kojisession = session
+            else:
+                self._kojisession = session
+
+        if not anon:
+            try:
+                self.login_koji_session(koji_config, self._kojisession)
+            except pyrpkg.rpkgAuthError:
+                self.log.info("You might want to run rpmfusion-packager-setup to "
+                              "regenerate SSL certificate. For more info see "
+                              "https://fedoraproject.org/wiki/Using_the_Koji_build"
+                              "_system#Fedora_Account_System_.28FAS2.29_Setup")
+                raise
 
 
 def _get_bodhi_version():

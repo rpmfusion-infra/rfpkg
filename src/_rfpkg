@@ -335,12 +335,6 @@ _rfpkg-retire () {
     ':message'
 }
 
-(( $+functions[_rfpkg-update] )) ||
-_rfpkg-update () {
-  _arguments -C \
-    '(-h --help)'{-h,--help}'[show help message and exit]'
-}
-
 (( $+functions[_rfpkg_commands] )) ||
 _rfpkg_commands () {
   local -a rfpkg_commands
@@ -380,7 +374,6 @@ _rfpkg_commands () {
     verify-files:'locally verify %files section'
     verrel:'print the name-version-release'
     retire:'retire a package'
-    update:'submit last build as an update'
   )
 
   integer ret=1

@@ -33,10 +33,6 @@ class rfpkgClient(cliClient):
 
         self.register_retire()
 
-        # Don't register the update command, as rpmfusion does not have a
-        # bodhi instance to send update requests to
-        #self.register_update()
-
     # Target registry goes here
     def register_retire(self):
         """Register the retire target"""
@@ -51,15 +47,6 @@ class rfpkgClient(cliClient):
         retire_parser.add_argument('reason',
                                    help='Reason for retiring the package')
         retire_parser.set_defaults(command=self.retire)
-
-    def register_update(self):
-        update_parser = self.subparsers.add_parser(
-            'update',
-            help='Submit last build as update',
-            description='This will create a bodhi update request for the '
-                        'current package n-v-r.'
-        )
-        update_parser.set_defaults(command=self.update)
 
     # Target functions go here
     def retire(self):
@@ -84,100 +71,6 @@ class rfpkgClient(cliClient):
         except Exception as e:
             self.log.error('Could not retire package: %s' % e)
             sys.exit(1)
-
-    def _format_update_clog(self, clog):
-        ''' Format clog for the update template. '''
-        lines = [l for l in clog.split('\n') if l]
-        if len(lines) == 0:
-            return "- Rebuilt.", ""
-        elif len(lines) == 1:
-            return lines[0], ""
-        log = ["# Changelog:"]
-        log.append('# - ' + lines[0])
-        for l in lines[1:]:
-            log.append('# ' + l)
-        log.append('#')
-        return lines[0], "\n".join(log)
-
-    def update(self):
-        template = """\
-[ %(nvr)s ]
-
-# bugfix, security, enhancement, newpackage (required)
-type=
-
-# testing, stable
-request=testing
-
-# Bug numbers: 1234,9876
-bugs=%(bugs)s
-
-%(changelog)s
-# Here is where you give an explanation of your update.
-notes=%(descr)s
-
-# Enable request automation based on the stable/unstable karma thresholds
-autokarma=True
-stable_karma=3
-unstable_karma=-3
-
-# Automatically close bugs when this marked as stable
-close_bugs=True
-
-# Suggest that users restart after update
-suggest_reboot=False
-"""
-
-        bodhi_args = {'nvr': self.cmd.nvr,
-                      'bugs': '',
-                      'descr': 'Here is where you give an explanation'
-                               ' of your update.'}
-
-        # Extract bug numbers from the latest changelog entry
-        self.cmd.clog()
-        clog = file('clog').read()
-        bugs = re.findall(r'#([0-9]*)', clog)
-        if bugs:
-            bodhi_args['bugs'] = ','.join(bugs)
-
-        # Use clog as default message
-        bodhi_args['descr'], bodhi_args['changelog'] = \
-            self._format_update_clog(clog)
-
-        template = textwrap.dedent(template) % bodhi_args
-
-        # Calculate the hash of the unaltered template
-        orig_hash = hashlib.new('sha1')
-        orig_hash.update(template)
-        orig_hash = orig_hash.hexdigest()
-
-        # Write out the template
-        out = file('bodhi.template', 'w')
-        out.write(template)
-        out.close()
-
-        # Open the template in a text editor
-        editor = os.getenv('EDITOR', 'vi')
-        self.cmd._run_command([editor, 'bodhi.template'], shell=True)
-
-        # Check to see if we got a template written out.  Bail otherwise
-        if not os.path.isfile('bodhi.template'):
-            self.log.error('No bodhi update details saved!')
-            sys.exit(1)
-        # If the template was changed, submit it to bodhi
-        hash = self.cmd.lookasidecache.hash_file('bodhi.template', 'sha1')
-        if hash != orig_hash:
-            try:
-                self.cmd.update('bodhi.template')
-            except Exception as e:
-                self.log.error('Could not generate update request: %s' % e)
-                sys.exit(1)
-        else:
-            self.log.info('Bodhi update aborted!')
-
-        # Clean up
-        os.unlink('bodhi.template')
-        os.unlink('clog')
 
 if __name__ == '__main__':
     client = cliClient()

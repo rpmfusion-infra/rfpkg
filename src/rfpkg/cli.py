@@ -32,7 +32,10 @@ class rfpkgClient(cliClient):
         """Register the fedora specific targets"""
 
         self.register_retire()
-        self.register_update()
+
+        # Don't register the update command, as rpmfusion does not have a
+        # bodhi instance to send update requests to
+        #self.register_update()
 
     # Target registry goes here
     def register_retire(self):

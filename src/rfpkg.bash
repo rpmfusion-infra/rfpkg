@@ -37,7 +37,7 @@ _rfpkg()
     local commands="build chain-build ci clean clog clone co commit compile \
     container-build diff gimmespec giturl help gitbuildhash import install lint \
     local mockbuild mock-config new new-sources patch prep pull push retire \
-    scratch-build sources srpm switch-branch tag unused-patches update upload \
+    scratch-build sources srpm switch-branch tag unused-patches upload \
     verify-files verrel"
 
     # parse main options and get command
@@ -94,7 +94,7 @@ _rfpkg()
     local after= after_more=
 
     case $command in
-        help|gimmespec|gitbuildhash|giturl|lint|new|push|unused-patches|update|verrel)
+        help|gimmespec|gitbuildhash|giturl|lint|new|push|unused-patches|verrel)
             ;;
         build)
             options="--nowait --background --skip-tag --scratch"

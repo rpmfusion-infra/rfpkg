@@ -61,9 +61,9 @@ class rfpkgClient(cliClient):
     # Target functions go here
     def retire(self):
         try:
-            module_name = self.cmd.module_name
-            ns_module_name = self.cmd.ns_module_name
-            namespace = ns_module_name.split(module_name)[0].rstrip('/')
+            repo_name = self.cmd.repo_name
+            ns_repo_name = self.cmd.ns_repo_name
+            namespace = ns_repo_name.split(repo_name)[0].rstrip('/')
             # Skip if package is already retired to allow to retire only in
             # pkgdb
             if os.path.isfile(os.path.join(self.cmd.path, 'dead.package')):
@@ -77,7 +77,7 @@ class rfpkgClient(cliClient):
             branch = self.cmd.branch_merge
             pkgdb = pkgdb2client.PkgDB(
                 login_callback=pkgdb2client.ask_password, url="https://admin.rpmfusion.org/pkgdb")
-            pkgdb.retire_packages(module_name, branch, namespace=namespace)
+            pkgdb.retire_packages(repo_name, branch, namespace=namespace)
         except Exception as e:
             self.log.error('Could not retire package: %s' % e)
             sys.exit(1)

@@ -122,7 +122,7 @@ class Commands(pyrpkg.Commands):
         return os.path.expanduser('~/.rpmfusion-server-ca.cert')
 
     def load_ns_repo_name(self):
-        """Loads a RPM Fusion package repo."""
+        """Loads a RPM Fusion package repository."""
 
         if self.push_url:
             parts = urlparse.urlparse(self.push_url)

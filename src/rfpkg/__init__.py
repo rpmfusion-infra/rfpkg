@@ -93,12 +93,12 @@ class Commands(pyrpkg.Commands):
         # We have to allow this to work, even if we don't have a package
         # we're working on, for things like gitbuildhash.
         try:
-            null = self.module_name
+            null = self.repo_name
         except:
             self._kojiprofile = self._orig_kojiprofile
             return
         for arch in self.secondary_arch.keys():
-            if self.module_name in self.secondary_arch[arch]:
+            if self.repo_name in self.secondary_arch[arch]:
                 self._kojiprofile = arch
                 return
         self._kojiprofile = self._orig_kojiprofile
@@ -121,20 +121,20 @@ class Commands(pyrpkg.Commands):
         """
         return os.path.expanduser('~/.rpmfusion-server-ca.cert')
 
-    def load_ns_module_name(self):
-        """Loads a RPM Fusion package module."""
+    def load_ns_repo_name(self):
+        """Loads a RPM Fusion package repo."""
 
         if self.push_url:
             parts = urlparse.urlparse(self.push_url)
 
             if self.distgit_namespaced:
                 path_parts = [p for p in parts.path.split("/") if p]
-                ns_module_name = "/".join(path_parts[-2:])
+                ns_repo_name = "/".join(path_parts[-2:])
                 _ns = path_parts[-2]
 
-            if ns_module_name.endswith('.git'):
-                ns_module_name = ns_module_name[:-len('.git')]
-            self._ns_module_name = ns_module_name
+            if ns_repo_name.endswith('.git'):
+                ns_repo_name = ns_repo_name[:-len('.git')]
+            self._ns_repo_name = ns_repo_name
             self.namespace = _ns
             return
 
@@ -144,7 +144,7 @@ class Commands(pyrpkg.Commands):
 
         We override this because we need a different download path.
         """
-        self.load_ns_module_name()
+        self.load_ns_repo_name()
         self._cert_file = os.path.expanduser('~/.rpmfusion.cert')
 
         return RPMFusionLookasideCache(
@@ -157,7 +157,7 @@ class Commands(pyrpkg.Commands):
 
         # Determine runtime environment
         self._runtime_disttag = self._determine_runtime_env()
-        self.load_ns_module_name()
+        self.load_ns_repo_name()
 
         # We only match the top level branch name exactly.
         # Anything else is too dangerous and --release should be used
@@ -210,7 +210,7 @@ class Commands(pyrpkg.Commands):
     def load_target(self):
         """This creates the target attribute based on branch merge"""
 
-        self.load_ns_module_name()
+        self.load_ns_repo_name()
         if self.branch_merge == 'master':
             self._target = 'rawhide-%s' % self.namespace
         else:

@@ -99,7 +99,7 @@ _rfpkg-clone () {
     '(-h --help)'{-h,--help}'[show help message and exit]' \
     '(-B --branches)'{-B,--branches}'[do an old style checkout with subdirs for branches]' \
     '(-b --branch)'{-b,--branch}'[check out a specific branch]:branch:_rfpkg_branches' \
-    '(-a --anonymous)'{-a,--anonymous}'[check out a module anonymously]' \
+    '(-a --anonymous)'{-a,--anonymous}'[check out a repository anonymously]' \
     ':package:_rfpkg_packages'
 }
 
@@ -350,7 +350,7 @@ _rfpkg_commands () {
     chain-build:'build current package in order with other packages'
     clean:'remove untracked files'
     clog:'make a clog file containing top changelog entry'
-    clone:'clone and checkout a module'
+    clone:'clone and checkout a repository'
     commit:'commit changes'
     compile:'local test rpmbuild compile'
     copr-build:'build package in Copr'
@@ -358,7 +358,7 @@ _rfpkg_commands () {
     gimmespec:'print the spec file name'
     gitbuildhash:'print the git hash used to build the provided n-v-r'
     giturl:'print the git url for building'
-    import:'import srpm content into a module'
+    import:'import srpm content into a repository'
     install:'local test rpmbuild install'
     lint:'run rpmlint against local spec and build output if present'
     local:'local test rpmbuild binary'

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 from setuptools import setup
 try:
     from subprocess import getstatusoutput

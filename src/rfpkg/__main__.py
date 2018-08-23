@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # rfpkg - a script to interact with the RPM Fusion Packaging system
 #
 # Copyright (C) 2011 Red Hat Inc.

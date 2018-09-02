@@ -314,25 +314,6 @@ class Commands(pyrpkg.Commands):
 
         self.commit(message=message)
 
-    def update(self, template='bodhi.template', bugs=[]):
-        """Submit an update to bodhi using the provided template."""
-
-        # build up the bodhi arguments, based on which version of bodhi is
-        # installed
-        bodhi_major_version = _get_bodhi_version()[0]
-        if bodhi_major_version < 2:
-            cmd = ['bodhi', '--new', '--release', self.branch_merge,
-                   '--file', 'bodhi.template', self.nvr, '--username',
-                   self.user]
-        elif bodhi_major_version == 2:
-            cmd = ['bodhi', 'updates', 'new', '--file', 'bodhi.template',
-                   '--user', self.user, self.nvr]
-        else:
-            msg = 'This system has bodhi v{0}, which is unsupported.'
-            msg = msg.format(bodhi_major_version)
-            raise Exception(msg)
-        self._run_command(cmd, shell=True)
-
     def load_kojisession(self, anon=False):
         """Initiate a koji session.
 
@@ -375,18 +356,6 @@ class Commands(pyrpkg.Commands):
                               "https://fedoraproject.org/wiki/Using_the_Koji_build"
                               "_system#Fedora_Account_System_.28FAS2.29_Setup")
                 raise
-
-
-def _get_bodhi_version():
-    """
-    Use bodhi --version to determine the version of the Bodhi CLI that's
-    installed on the system, then return a list of the version components.
-    For example, if bodhi --version returns "2.1.9", this function will return
-    [2, 1, 9].
-    """
-    bodhi = subprocess.Popen(['bodhi', '--version'], stdout=subprocess.PIPE)
-    version = bodhi.communicate()[0].strip()
-    return [int(component) for component in version.split('.')]
 
 
 if __name__ == "__main__":

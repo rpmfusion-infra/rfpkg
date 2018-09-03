@@ -13,7 +13,7 @@ def bash_completion_dir():
 
 setup(
     name="rfpkg",
-    version="1.25.5",
+    version="1.25.6",
     author="Nicolas Chauvet",
     author_email="kwizart@gmail.com",
     description=("RPM Fusion plugin to rpkg to manage "

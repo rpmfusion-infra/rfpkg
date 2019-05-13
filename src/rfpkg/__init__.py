@@ -370,10 +370,9 @@ class Commands(pyrpkg.Commands):
             try:
                 self.login_koji_session(koji_config, self._kojisession)
             except pyrpkg.rpkgAuthError:
-                self.log.info("You might want to run rpmfusion-packager-setup to "
+                self.log.info("You might want to run rpmfusion-cert -n to "
                               "regenerate SSL certificate. For more info see "
-                              "https://fedoraproject.org/wiki/Using_the_Koji_build"
-                              "_system#Fedora_Account_System_.28FAS2.29_Setup")
+                              "https://rpmfusion.org/Contributors#If_SSL_certificate_expired")
                 raise
 
 

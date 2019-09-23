@@ -1,3 +1,4 @@
+from __future__ import print_function
 # cli.py - a cli client class module for rfpkg
 #
 # Copyright (C) 2011 Red Hat Inc.
@@ -19,7 +20,7 @@ import subprocess
 import textwrap
 import hashlib
 
-import pkgdb2client
+import rfpkgdb2client
 
 
 class rfpkgClient(cliClient):
@@ -78,8 +79,8 @@ class rfpkgClient(cliClient):
             self.push()
 
             branch = self.cmd.branch_merge
-            pkgdb = pkgdb2client.PkgDB(
-                login_callback=pkgdb2client.ask_password, url="https://admin.rpmfusion.org/pkgdb")
+            pkgdb = rfpkgdb2client.PkgDB(
+                login_callback=rfpkgdb2client.ask_password, url="https://admin.rpmfusion.org/pkgdb")
             pkgdb.retire_packages(repo_name, branch, namespace=namespace)
         except Exception as e:
             self.log.error('Could not retire package: %s' % e)

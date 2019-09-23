@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # rfpkg - a Python library for RPM Packagers
 #
 # Copyright (C) 2011 Red Hat Inc.
@@ -10,15 +11,17 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+from future import standard_library
+standard_library.install_aliases()
 import pyrpkg
 import os
-import cli
+from . import cli
 import git
 import re
 import rpmfusion_cert
 import platform
 import subprocess
-import urlparse
+import urllib.parse
 import koji
 
 
@@ -97,7 +100,7 @@ class Commands(pyrpkg.Commands):
         except:
             self._kojiprofile = self._orig_kojiprofile
             return
-        for arch in self.secondary_arch.keys():
+        for arch in list(self.secondary_arch.keys()):
             if self.repo_name in self.secondary_arch[arch]:
                 self._kojiprofile = arch
                 return
@@ -125,7 +128,7 @@ class Commands(pyrpkg.Commands):
         """Loads a RPM Fusion package repository."""
 
         if self.push_url:
-            parts = urlparse.urlparse(self.push_url)
+            parts = urllib.parse.urlparse(self.push_url)
 
             if self.distgit_namespaced:
                 path_parts = [p for p in parts.path.split("/") if p]

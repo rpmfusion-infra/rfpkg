@@ -10,6 +10,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+from __future__ import print_function
 import os
 import sys
 import logging

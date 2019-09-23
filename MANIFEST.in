@@ -1,6 +1,6 @@
-include COPYING
-include src/_rfpkg
-include src/rfpkg.bash
-include src/rfpkg.conf
-include src/rfpkg_man_page.py
+include COPYING README git-changelog
+include doc/rfpkg_man_page.py
+include test/test_retire.py
 include test/rfpkg-test.conf
+recursive-include conf *
+include requirements.txt tests-requirements.txt

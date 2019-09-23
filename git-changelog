@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 #
 # git-changelog - Output a rpm changelog
 #
@@ -20,13 +20,10 @@
 # Author: David Cantrell <dcantrell@redhat.com>
 # Author: Brian C. Lane <bcl@redhat.com>
 
-import os
 import re
 import subprocess
-import sys
 import textwrap
-from optparse import OptionParser
-
+from argparse import ArgumentParser
 
 
 class ChangeLog:
@@ -38,6 +35,7 @@ class ChangeLog:
     def _getCommitDetail(self, commit, field):
         proc = subprocess.Popen(['git', 'log', '-1',
                                  "--pretty=format:%s" % field, commit],
+                                universal_newlines=True,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE).communicate()
 
@@ -52,17 +50,55 @@ class ChangeLog:
 
         return ret
 
+    def _extract_issue_ids(self, s):
+        prefix_pattern = re.compile(r'^(Fix|Fixes|Bug|Resolves?):? (.+)$', re.IGNORECASE)
+        prefix_match = prefix_pattern.match(s)
+        if prefix_match is None:
+            return
+        rest_s = prefix_match.groups()[1]
+        issue_ids = []
+        for match in re.findall(r'(BZ|RHBZ|bz|rhbz)(:|: | )?(#?\d+)', rest_s):
+            issue_ids.append('{0}{1}'.format(match[0], match[2]))
+        if issue_ids:
+            # Sometimes, "BZ #1234" could confuse next step of search. So,
+            # remove them once found to avoid such confusion.
+            rest_s = re.sub(r'(BZ|RHBZ|bz|rhbz)(:|: | )?(#?\d+)', '', rest_s)
+        issue_ids.extend(re.findall(r'#?\d+', rest_s))
+        issue_ids.sort()
+        return issue_ids
+
+    def _get_fixed_issues(self, commit):
+        """Get fixed issue or bug IDs from commit message body
+
+        Both patterns matching pagure issue and Bugzilla bug are supported.
+        Examples,
+
+        Fix #1234
+        Fixes: #11234
+        Fixes: #11234 #9283
+        Bug 123456
+        Bug BZ123456 RHBZ123456
+        """
+        body = self._getCommitDetail(commit, "%b")
+        ids = None
+        for line in body:
+            ids = self._extract_issue_ids(line)
+            if ids:
+                break
+        return ids
+
     def getLog(self):
         if not self.name:
             range = "%s.." % (self.version)
         else:
             range = "%s-%s.." % (self.name, self.version)
-        proc = subprocess.Popen(['git', 'log', '--pretty=oneline', range],
+        proc = subprocess.Popen(['git', 'log', '--pretty=oneline', '--no-merges', range],
+                                universal_newlines=True,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE).communicate()
-        lines = filter(lambda x: x.find('l10n: ') != 41 and \
-                                 x.find('Merge commit') != 41 and \
-                                 x.find('Merge branch') != 41,
+        lines = filter(lambda x: x.find('l10n: ') != 41 and
+                       x.find('Merge commit') != 41 and
+                       x.find('Merge branch') != 41,
                        proc[0].strip('\n').split('\n'))
 
         if self.ignore and self.ignore != '':
@@ -75,10 +111,13 @@ class ChangeLog:
             commit = fields[0]
 
             summary = self._getCommitDetail(commit, "%s")
-            long = self._getCommitDetail(commit, "%b")
             author = self._getCommitDetail(commit, "%aE")
+            issue_ids = self._get_fixed_issues(commit)
 
-            log.append(("%s (%s)" % (summary.strip(), author)))
+            if issue_ids:
+                log.append(("%s - %s (%s)" % (summary.strip(), ' '.join(issue_ids), author)))
+            else:
+                log.append(("%s (%s)" % (summary.strip(), author)))
 
         return log
 
@@ -94,18 +133,18 @@ class ChangeLog:
 
         return s
 
-def main():
-    parser = OptionParser()
-    parser.add_option("-n", "--name", dest="name",
-                      help="Name of package used in tags")
-    parser.add_option("-v", "--version", dest="version",
-                      help="Last version, changelog is commits after this tag")
-    (options, args) = parser.parse_args()
 
-    cl = ChangeLog(options.name, options.version)
-    print cl.formatLog()
+def main():
+    parser = ArgumentParser()
+    parser.add_argument("-n", "--name",
+                        help="Name of package used in tags")
+    parser.add_argument("-v", "--version",
+                        help="Last version, changelog is commits after this tag")
+    args = parser.parse_args()
+
+    cl = ChangeLog(args.name, args.version)
+    print(cl.formatLog())
+
 
 if __name__ == "__main__":
     main()
-
-

@@ -215,6 +215,9 @@ class Commands(pyrpkg.Commands):
             self._target = 'rawhide-%s' % self.namespace
         else:
             self._target = '%s-%s' % ( self.branch_merge , self.namespace)
+        if self._package_name_spec in ['buildsys-build-rpmfusion', 'libva-intel-driver',
+            'Cg', 'pcsx2', 'steam', 'xorg-x11-drv-nvidia', 'xorg-x11-drv-nvidia-390xx', 'xorg-x11-drv-nvidia-340xx']:
+            self._target += "-multilibs"
 
     def load_user(self):
         """This sets the user attribute, based on the RPM Fusion SSL cert."""

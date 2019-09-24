@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 # rfpkg - a Python library for RPM Packagers
 #
 # Copyright (C) 2011 Red Hat Inc.
@@ -11,20 +10,18 @@ from __future__ import absolute_import
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from future import standard_library
-standard_library.install_aliases()
 import pyrpkg
 import os
-from . import cli
 import git
 import re
+
 import rpmfusion_cert
 import platform
 import subprocess
 import urllib.parse
 import koji
 
-
+from . import cli
 from .lookaside import RPMFusionLookasideCache
 from pyrpkg.utils import cached_property
 

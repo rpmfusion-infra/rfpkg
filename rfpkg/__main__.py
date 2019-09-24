@@ -1,4 +1,3 @@
-#!/usr/bin/python2
 # rfpkg - a script to interact with the RPM Fusion Packaging system
 #
 # Copyright (C) 2011 Red Hat Inc.
@@ -10,10 +9,14 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from __future__ import print_function
+import logging
 import os
 import sys
-import logging
+
+import rfpkg
+import pyrpkg
+import pyrpkg.utils
+
 import argparse
 
 import six
@@ -22,9 +25,6 @@ if six.PY3:  # SafeConfigParser == ConfigParser, former deprecated in >= 3.2
 else:
     from six.moves.configparser import SafeConfigParser as ConfigParser
 
-import pyrpkg
-import pyrpkg.utils
-import rfpkg
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
     if not client.args.path:
         try:
             client.args.path = pyrpkg.utils.getcwd()
-        except:
+        except Exception:
             print('Could not get current path, have you deleted it?')
             sys.exit(1)
 

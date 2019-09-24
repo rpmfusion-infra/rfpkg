@@ -1,4 +1,4 @@
-from __future__ import print_function
+# -*- coding: utf-8 -*-
 # cli.py - a cli client class module for rfpkg
 #
 # Copyright (C) 2011 Red Hat Inc.
@@ -11,6 +11,7 @@ from __future__ import print_function
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+from __future__ import print_function
 from pyrpkg.cli import cliClient
 import sys
 import os

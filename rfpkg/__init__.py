@@ -68,7 +68,7 @@ class Commands(pyrpkg.Commands):
         # RPM Fusion default namespace
         self.default_namespace = 'free'
         self.namespace = None
-        self.hashtype = 'md5'
+        self.hashtype = 'sha512'
 
     # Add new properties
     @property

@@ -11,7 +11,6 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from __future__ import print_function
 from pyrpkg.cli import cliClient
 import sys
 import os
@@ -20,8 +19,12 @@ import re
 import subprocess
 import textwrap
 import hashlib
+import six
 
-import rfpkgdb2client
+if six.PY3:
+    import rfpkgdb2client
+else:
+    import pkgdb2client as rfpkgdb2client
 
 
 class rfpkgClient(cliClient):

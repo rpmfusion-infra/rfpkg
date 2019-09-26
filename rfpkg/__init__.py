@@ -18,7 +18,10 @@ import re
 import rpmfusion_cert
 import platform
 import subprocess
-import urllib.parse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 import koji
 
 from . import cli
@@ -126,7 +129,7 @@ class Commands(pyrpkg.Commands):
         """Loads a RPM Fusion package repository."""
 
         if self.push_url:
-            parts = urllib.parse.urlparse(self.push_url)
+            parts = urlparse(self.push_url)
 
             if self.distgit_namespaced:
                 path_parts = [p for p in parts.path.split("/") if p]

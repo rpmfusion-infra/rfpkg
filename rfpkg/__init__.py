@@ -212,12 +212,15 @@ class Commands(pyrpkg.Commands):
         """This creates the target attribute based on branch merge"""
 
         self.load_ns_repo_name()
+        self.load_nameverrel()
         if self.branch_merge == 'master':
             self._target = 'rawhide-%s' % self.namespace
         else:
             self._target = '%s-%s' % ( self.branch_merge , self.namespace)
         if self._package_name_spec in ['buildsys-build-rpmfusion', 'libva-intel-driver',
-            'Cg', 'pcsx2', 'steam', 'xorg-x11-drv-nvidia', 'xorg-x11-drv-nvidia-390xx', 'xorg-x11-drv-nvidia-340xx']:
+            'Cg', 'pcsx2', 'steam', 'xorg-x11-drv-nvidia', 'xorg-x11-drv-nvidia-390xx',
+            'xorg-x11-drv-nvidia-340xx'] and self.branch_merge not in ['el6', 'f28',
+            'f29', 'f30'] and self.namespace in ['free', 'nonfree']:
             self._target += "-multilibs"
 
     def load_user(self):

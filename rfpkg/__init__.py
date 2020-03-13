@@ -220,7 +220,10 @@ class Commands(pyrpkg.Commands):
             self._target = 'rawhide-%s' % self.namespace
         else:
             self._target = '%s-%s' % ( self.branch_merge , self.namespace)
-        if self._package_name_spec in ['buildsys-build-rpmfusion', 'libva-intel-driver',
+        if self._package_name_spec in ['buildsys-build-rpmfusion', 'gpac', 'gstreamer1-libav',
+            'gstreamer1-plugins-bad-freeworld', 'gstreamer1-plugins-ugly', 'faad2', 'ffmpeg',
+            'libde265', 'libdca', 'libmms', 'libquicktime', 'libva-intel-driver', 'mjpegtools',
+            'opencore-amr', 'rtmpdump', 'vo-amrwbenc', 'x264', 'x265', 'xvidcore',
             'Cg', 'pcsx2', 'steam', 'xorg-x11-drv-nvidia', 'xorg-x11-drv-nvidia-390xx',
             'xorg-x11-drv-nvidia-340xx'] and self.branch_merge not in ['el6', 'f28',
             'f29', 'f30'] and self.namespace in ['free', 'nonfree']:

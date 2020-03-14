@@ -265,28 +265,18 @@ class Commands(pyrpkg.Commands):
         """Need to know what the runtime env is, so we can unset anything
            conflicting
         """
-
         try:
-            mydist = platform.linux_distribution()
-        except:
-            # This is marked as eventually being deprecated.
-            try:
-                mydist = platform.dist()
-            except:
-                runtime_os = 'unknown'
-                runtime_version = '0'
-
-        if mydist:
-            runtime_os = mydist[0]
-            runtime_version = mydist[1]
-        else:
-            runtime_os = 'unknown'
-            runtime_version = '0'
+            runtime_os, runtime_version, _ = linux_distribution()
+        except Exception:
+            return None
 
         if runtime_os in ['redhat', 'centos']:
             return 'el%s' % runtime_version
         if runtime_os == 'Fedora':
             return 'fc%s' % runtime_version
+        if (runtime_os == 'Red Hat Enterprise Linux Server' or
+                runtime_os.startswith('CentOS')):
+            return 'el{0}'.format(runtime_version.split('.')[0])
 
         # fall through, return None
         return None

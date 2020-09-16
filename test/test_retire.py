@@ -4,12 +4,12 @@ import os
 import shutil
 import unittest
 import mock
-import ConfigParser
+from six.moves import configparser
 import tempfile
 import subprocess
+import rfpkgdb2client
 
 from rfpkg.cli import rfpkgClient
-
 
 TEST_CONFIG = os.path.join(os.path.dirname(__file__), 'rfpkg-test.conf')
 
@@ -47,12 +47,13 @@ class RetireTestCase(unittest.TestCase):
 
     def _get_latest_commit(self):
         proc = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=%s'],
-                                cwd=self.tmpdir, stdout=subprocess.PIPE)
+                                cwd=self.tmpdir, stdout=subprocess.PIPE,
+                                universal_newlines=True)
         out, err = proc.communicate()
         return out.strip()
 
     def _fake_client(self, args):
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         config.read(TEST_CONFIG)
         with mock.patch('sys.argv', new=args):
             client = rfpkgClient(config)
@@ -71,7 +72,7 @@ class RetireTestCase(unittest.TestCase):
                                                      'rfpkg.spec')))
         self.assertEqual(self._get_latest_commit(), reason)
 
-    @mock.patch('pkgdb2client.PkgDB')
+    @mock.patch('rfpkgdb2client.PkgDB')
     def test_retire_with_namespace(self, PkgDB):
         self._setup_repo('ssh://git@pkgs.example.com/rpms/rfpkg')
         args = ['rfpkg', '--release=master', 'retire', 'my reason']
@@ -85,7 +86,7 @@ class RetireTestCase(unittest.TestCase):
                          [mock.call('rfpkg', 'master', namespace='rpms')])
 
     @mock.patch('rpmfusion_cert.read_user_cert')
-    @mock.patch('pkgdb2client.PkgDB')
+    @mock.patch('rfpkgdb2client.PkgDB')
     def test_retire_without_namespace(self, PkgDB, read_user_cert):
         self._setup_repo('ssh://git@pkgs.example.com/rfpkg')
         args = ['rfpkg', '--release=master', 'retire', 'my reason']

@@ -281,12 +281,12 @@ class Commands(pyrpkg.Commands):
         # fall through, return None
         return None
 
-    def construct_build_url(self):
+    def construct_build_url(self, *args, **kwargs):
         """Override build URL for RPM Fusion Koji build
 
         In RPM Fusion Koji, anonymous URL should have prefix "git+https://"
         """
-        url = super(Commands, self).construct_build_url()
+        url = super(Commands, self).construct_build_url(*args, **kwargs)
         if not url.startswith('git'):
             url = 'git+{0}'.format(url)
         return url

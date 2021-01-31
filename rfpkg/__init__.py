@@ -16,13 +16,7 @@ import git
 import re
 
 import rpmfusion_cert
-import platform
-import subprocess
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-import koji
+from six.moves.urllib_parse import urlparse
 
 from . import cli
 from .lookaside import RPMFusionLookasideCache
@@ -31,15 +25,10 @@ from pyrpkg.utils import cached_property
 
 class Commands(pyrpkg.Commands):
 
-    def __init__(self, path, lookaside, lookasidehash, lookaside_cgi,
-                 gitbaseurl, anongiturl, branchre, kojiprofile,
-                 build_client, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Init the object and some configuration details."""
 
-        super(Commands, self).__init__(path, lookaside, lookasidehash,
-                                       lookaside_cgi, gitbaseurl, anongiturl,
-                                       branchre, kojiprofile, build_client,
-                                       **kwargs)
+        super(Commands, self).__init__(*args, **kwargs)
 
         # New data
         self.secondary_arch = {
@@ -62,11 +51,8 @@ class Commands(pyrpkg.Commands):
         }
 
         # New properties
-        self._kojiprofile = None
         self._cert_file = None
         self._ca_cert = None
-        # Store this for later
-        self._orig_kojiprofile = kojiprofile
 
         # RPM Fusion default namespace
         self.default_namespace = 'free'
@@ -75,37 +61,14 @@ class Commands(pyrpkg.Commands):
         self.hashtype = 'sha512'
 
     # Add new properties
-    @property
-    def kojiprofile(self):
-        """This property ensures the kojiprofile attribute"""
-
-        if not self._kojiprofile:
-            self.load_kojiprofile()
-        return self._kojiprofile
-
-    @kojiprofile.setter
-    def kojiprofile(self, value):
-        self._kojiprofile = value
-
-    def load_kojiprofile(self):
-        """This loads the kojiprofile attribute
-
-        This will either use the one passed in via arguments or a
-        secondary arch config depending on the package
-        """
-
-        # We have to allow this to work, even if we don't have a package
-        # we're working on, for things like gitbuildhash.
+    def load_user(self):
+        """This sets the user attribute, based on the RPM Fusion SSL cert."""
         try:
-            null = self.repo_name
-        except:
-            self._kojiprofile = self._orig_kojiprofile
-            return
-        for arch in list(self.secondary_arch.keys()):
-            if self.repo_name in self.secondary_arch[arch]:
-                self._kojiprofile = arch
-                return
-        self._kojiprofile = self._orig_kojiprofile
+            self._user = rpmfusion_cert.read_user_cert()
+        except Exception as e:
+            self.log.debug('Could not read RPM Fusion cert, falling back to '
+                           'default method: %s' % e)
+            super(Commands, self).load_user()
 
     @cached_property
     def cert_file(self):
@@ -230,15 +193,6 @@ class Commands(pyrpkg.Commands):
             'f29', 'f30'] and self.namespace in ['free', 'nonfree']:
             self._target += "-multilibs"
 
-    def load_user(self):
-        """This sets the user attribute, based on the RPM Fusion SSL cert."""
-        try:
-            self._user = rpmfusion_cert.read_user_cert()
-        except Exception as e:
-            self.log.debug('Could not read RPM Fusion cert, falling back to '
-                           'default method: %s' % e)
-            super(Commands, self).load_user()
-
     def _tag2version(self, dest_tag):
         """ get the '26' part of 'f26-foo' string """
         return dest_tag.split('-')[0].replace('f', '')
@@ -256,7 +210,7 @@ class Commands(pyrpkg.Commands):
         try:
             rawhidetarget = self.anon_kojisession.getBuildTarget('rawhide-free')
         except:
-            # We couldn't hit Koji. Continue, because fedpkg may work offline.
+            # We couldn't hit Koji. Continue, because rfpkg may work offline.
             self.log.debug('Unable to query Koji to find rawhide target. Continue offline.')
         else:
             return self._tag2version(rawhidetarget['dest_tag_name'])
@@ -338,25 +292,6 @@ class Commands(pyrpkg.Commands):
 
         self.commit(message=message)
 
-    def update(self, template='bodhi.template', bugs=[]):
-        """Submit an update to bodhi using the provided template."""
-
-        # build up the bodhi arguments, based on which version of bodhi is
-        # installed
-        bodhi_major_version = _get_bodhi_version()[0]
-        if bodhi_major_version < 2:
-            cmd = ['bodhi', '--new', '--release', self.branch_merge,
-                   '--file', 'bodhi.template', self.nvr, '--username',
-                   self.user]
-        elif bodhi_major_version == 2:
-            cmd = ['bodhi', 'updates', 'new', '--file', 'bodhi.template',
-                   '--user', self.user, self.nvr]
-        else:
-            msg = 'This system has bodhi v{0}, which is unsupported.'
-            msg = msg.format(bodhi_major_version)
-            raise Exception(msg)
-        self._run_command(cmd, shell=True)
-
     def load_kojisession(self, anon=False):
         try:
             return super(Commands, self).load_kojisession(anon)
@@ -366,18 +301,6 @@ class Commands(pyrpkg.Commands):
                           "For more info see https://rpmfusion.org/Contributors"
                           "#If_SSL_certificate_expired")
             raise
-
-
-def _get_bodhi_version():
-    """
-    Use bodhi --version to determine the version of the Bodhi CLI that's
-    installed on the system, then return a list of the version components.
-    For example, if bodhi --version returns "2.1.9", this function will return
-    [2, 1, 9].
-    """
-    bodhi = subprocess.Popen(['bodhi', '--version'], stdout=subprocess.PIPE)
-    version = bodhi.communicate()[0].strip()
-    return [int(component) for component in version.split('.')]
 
 
 if __name__ == "__main__":

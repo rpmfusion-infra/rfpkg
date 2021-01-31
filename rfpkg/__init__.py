@@ -169,15 +169,16 @@ class Commands(pyrpkg.Commands):
         if re.match(r'f\d\d$', self.branch_merge):
             self._distval = self.branch_merge.split('f')[1]
             self._distvar = 'fedora'
-            self.dist = 'fc%s' % self._distval
+            self._disttag = 'fc%s' % self._distval
             self.mockconfig = 'fedora-%s-%s-rpmfusion_%s' % (self._distval, self.localarch, self.namespace)
             self.override = 'f%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'rhel'
         # Works until RHEL 10
-        elif re.match(r'el\d$', self.branch_merge) or re.match(r'epel\d$', self.branch_merge):
+        elif re.match(r'el\d$', self.branch_merge) or \
+            re.match(r'epel\d$', self.branch_merge):
             self._distval = self.branch_merge.split('el')[1]
             self._distvar = 'rhel'
-            self.dist = 'el%s' % self._distval
+            self._disttag = 'el%s' % self._distval
             self.mockconfig = 'epel-%s-%s-rpmfusion_%s' % (self._distval, self.localarch, self.namespace)
             self.override = 'epel%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'fedora'
@@ -185,7 +186,7 @@ class Commands(pyrpkg.Commands):
         elif re.match(r'master$', self.branch_merge):
             self._distval = self._findmasterbranch()
             self._distvar = 'fedora'
-            self.dist = 'fc%s' % self._distval
+            self._disttag = 'fc%s' % self._distval
             self.mockconfig = 'fedora-rawhide-%s-rpmfusion_%s' % (self.localarch, self.namespace)
             self.override = None
             self._distunset = 'rhel'
@@ -199,13 +200,13 @@ class Commands(pyrpkg.Commands):
                             "--define '_builddir %s'" % self.path,
                             "--define '_srcrpmdir %s'" % self.path,
                             "--define '_rpmdir %s'" % self.path,
-                            "--define 'dist .%s'" % self.dist,
+                            "--define 'dist .%s'" % self._disttag,
                             "--define '%s %s'" % (self._distvar,
                                                   self._distval),
                             "--eval '%%undefine %s'" % self._distunset,
-                            "--define '%s 1'" % self.dist]
+                            "--define '%s 1'" % self._disttag]
         if self._runtime_disttag:
-            if self.dist != self._runtime_disttag:
+            if self._disttag != self._runtime_disttag:
                 # This means that the runtime is known, and is different from
                 # the target, so we need to unset the _runtime_disttag
                 self._rpmdefines.append("--eval '%%undefine %s'" %
@@ -250,16 +251,40 @@ class Commands(pyrpkg.Commands):
         if self._kojisession:
             rawhidetarget = self.kojisession.getBuildTarget('rawhide-free')
             return self._tag2version(rawhidetarget['dest_tag_name'])
+
+        # We may not have Fedoras.  Find out what rawhide target does.
+        try:
+            rawhidetarget = self.anon_kojisession.getBuildTarget('rawhide-free')
+        except:
+            # We couldn't hit Koji. Continue, because fedpkg may work offline.
+            self.log.debug('Unable to query Koji to find rawhide target. Continue offline.')
         else:
-            # We may not have Fedoras.  Find out what rawhide target does.
-            try:
-                rawhidetarget = self.anon_kojisession.getBuildTarget(
-                    'rawhide-free')
-            except:
-                # We couldn't hit koji, bail.
-                raise pyrpkg.rpkgError('Unable to query koji to find rawhide \
-                                       target')
             return self._tag2version(rawhidetarget['dest_tag_name'])
+
+        # Create a list of "fedoras"
+        fedoras = []
+
+        # Create a regex to find branches that exactly match f##.  Should not
+        # catch branches such as f14-foobar
+        branchre = r'f\d\d$'
+
+        # Find the repo refs
+        for ref in self.repo.refs:
+            # Only find the remote refs
+            if type(ref) == git.RemoteReference:
+                # Search for branch name by splitting off the remote
+                # part of the ref name and returning the rest.  This may
+                # fail if somebody names a remote with / in the name...
+                if re.match(branchre, ref.name.split('/', 1)[1]):
+                    # Add just the simple f## part to the list
+                    fedoras.append(ref.name.split('/')[1])
+        if fedoras:
+            # Sort the list
+            fedoras.sort()
+            # Start with the last item, strip the f, add 1, return it.
+            return(int(fedoras[-1].strip('f')) + 1)
+        else:
+            raise pyrpkg.rpkgError('Unable to find rawhide target')
 
     def _determine_runtime_env(self):
         """Need to know what the runtime env is, so we can unset anything

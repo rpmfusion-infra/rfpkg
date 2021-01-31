@@ -13,25 +13,36 @@ import logging
 import os
 import sys
 
+import six
+
 import rfpkg
 import pyrpkg
 import pyrpkg.utils
 
 import argparse
 
-import six
 if six.PY3:  # SafeConfigParser == ConfigParser, former deprecated in >= 3.2
     from six.moves.configparser import ConfigParser
 else:
     from six.moves.configparser import SafeConfigParser as ConfigParser
 
 
+cli_name = os.path.basename(sys.argv[0])
+
 
 def main():
+    default_user_config_path = os.path.join(
+        os.path.expanduser('~'), '.config', 'rpkg', '%s.conf' % cli_name)
     # Setup an argparser and parse the known commands to get the config file
-    parser = argparse.ArgumentParser(add_help=False)
+    # - use the custom ArgumentParser class from pyrpkg.cli and disable
+    #   argument abbreviation to ensure that --user will be not treated as
+    #   --user-config
+    parser = pyrpkg.cli.ArgumentParser(add_help=False, allow_abbrev=False)
     parser.add_argument('-C', '--config', help='Specify a config file to use',
-                        default='/etc/rpkg/rfpkg.conf')
+                        default='/etc/rpkg/%s.conf' % cli_name)
+    parser.add_argument(
+        '--user-config', help='Specify a user config file to use',
+        default=default_user_config_path)
 
     (args, other) = parser.parse_known_args()
 
@@ -44,8 +55,9 @@ def main():
     # Setup a configuration object and read config file data
     config = ConfigParser()
     config.read(args.config)
+    config.read(args.user_config)
 
-    client = rfpkg.cli.rfpkgClient(config)
+    client = rfpkg.cli.rfpkgClient(config, name=cli_name)
     client.do_imports(site='rfpkg')
     client.parse_cmdline()
 
@@ -82,6 +94,7 @@ def main():
         if client.args.v:
             raise
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

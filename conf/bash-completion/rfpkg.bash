@@ -33,7 +33,7 @@ _rfpkg()
     # global options
 
     local options="--help -v -q"
-    local options_value="--dist --release --user --path"
+    local options_value="--release --user --path"
     local commands="build chain-build ci clean clog clone co commit compile \
     container-build diff gimmespec giturl help gitbuildhash import install lint \
     local mockbuild mock-config new new-sources patch prep pull push retire \
@@ -72,7 +72,7 @@ _rfpkg()
         fi
 
         case "$prev" in
-            --dist|--release)
+            --release)
                 ;;
             --user|-u)
                 ;;

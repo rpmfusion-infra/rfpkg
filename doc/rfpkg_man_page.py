@@ -21,7 +21,7 @@ if __name__ == '__main__':
     except ImportError:
         sys.path.append('src/')
         import rfpkg
-    client = rfpkg.cli.rfpkgClient(config=None, name='rfpkg')
+    client = rfpkg.cli.rfpkgClient(config=config, name='rfpkg')
     pyrpkg.man_gen.generate(client.parser,
                             client.subparsers,
                             identity='rfpkg',

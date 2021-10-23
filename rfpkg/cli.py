@@ -17,6 +17,7 @@ import argparse
 import sys
 import os
 import logging
+import six
 import textwrap
 
 if six.PY3:
@@ -24,7 +25,6 @@ if six.PY3:
 else:
     import pkgdb2client as rfpkgdb2client
 
-import six
 from pyrpkg.cli import cliClient
 
 RELEASE_BRANCH_REGEX = r'^(f\d+|el\d+|epel\d+)$'

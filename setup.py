@@ -40,7 +40,7 @@ else:
 
 setup(
     name="rfpkg",
-    version="1.26.3",
+    version="1.27.0",
     author="Nicolas Chauvet",
     author_email="kwizart@gmail.com",
     description=("RPM Fusion plugin to rpkg to manage "

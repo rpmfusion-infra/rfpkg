@@ -14,6 +14,7 @@ download path.
 """
 
 
+import os
 from pyrpkg.lookaside import CGILookasideCache
 
 
@@ -24,10 +25,18 @@ class RPMFusionLookasideCache(CGILookasideCache):
             hashtype, download_url, upload_url, client_cert=client_cert,
             ca_cert=ca_cert)
 
+        self.download_path_md5 = (
+            namespace + '/%(name)s/%(filename)s/%(hash)s/%(filename)s')
+        self.download_path = (
+            namespace + '/%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s')
+
+    def get_download_url(self, name, filename, hash, hashtype=None, **kwargs):
+        path_dict = {'name': name, 'filename': filename,
+                     'hash': hash, 'hashtype': hashtype}
+        path_dict.update(kwargs)
         if hashtype == 'md5':
-            self.download_path = (
-                namespace + '/%(name)s/%(filename)s/%(hash)s/%(filename)s')
+            path = self.download_path_md5 % path_dict
         else:
-            self.download_path = (
-                namespace + '/%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s')
+            path = self.download_path % path_dict
+        return os.path.join(self.download_url, path)
 

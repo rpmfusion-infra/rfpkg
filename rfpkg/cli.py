@@ -51,26 +51,14 @@ class rfpkgClient(cliClient):
     def setup_fed_subparsers(self):
         """Register the fedora specific targets"""
 
-        self.register_retire()
+        # Don't register again the retire command as it is already done
+        # by pyrpkg. Starting Python 3.11, it creates an error.
+        # https://github.com/python/cpython/pull/18605
+        #self.register_retire()
 
         # Don't register the update command, as rpmfusion does not have a
         # bodhi instance to send update requests to
         #self.register_update()
-
-    # Target registry goes here
-    def register_retire(self):
-        """Register the retire target"""
-
-        retire_parser = self.subparsers.add_parser(
-            'retire',
-            help='Retire a package',
-            description='This command will remove all files from the repo, '
-                        'leave a dead.package file, push the changes and '
-                        'retire the package in pkgdb.'
-        )
-        retire_parser.add_argument('reason',
-                                   help='Reason for retiring the package')
-        retire_parser.set_defaults(command=self.retire)
 
     # Target functions go here
     def _format_update_clog(self, clog):

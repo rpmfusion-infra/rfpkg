@@ -158,22 +158,22 @@ class Commands(pyrpkg.Commands):
             raise pyrpkg.rpkgError('Could not find the release/dist from branch name '
                                    '%s\nPlease specify with --release' %
                                    self.branch_merge)
-        self._rpmdefines = ["--define '_sourcedir %s'" % self.path,
-                            "--define '_specdir %s'" % self.path,
-                            "--define '_builddir %s'" % self.path,
-                            "--define '_srcrpmdir %s'" % self.path,
-                            "--define '_rpmdir %s'" % self.path,
-                            "--define 'dist .%s'" % self._disttag,
-                            "--define '%s %s'" % (self._distvar,
-                                                  self._distval),
-                            "--eval '%%undefine %s'" % self._distunset,
-                            "--define '%s 1'" % self._disttag]
+        self._rpmdefines = ['--define', '_sourcedir %s' % self.path,
+                            '--define', '_specdir %s' % self.path,
+                            '--define', '_builddir %s' % self.path,
+                            '--define', '_srcrpmdir %s' % self.path,
+                            '--define', '_rpmdir %s' % self.path,
+                            '--define', 'dist .%s' % self._disttag,
+                            '--define', '%s %s' % (self._distvar,
+                                                   self._distval),
+                            '--eval', '%%undefine %s' % self._distunset,
+                            '--define', '%s 1' % self._disttag]
         if self._runtime_disttag:
             if self._disttag != self._runtime_disttag:
                 # This means that the runtime is known, and is different from
                 # the target, so we need to unset the _runtime_disttag
-                self._rpmdefines.append("--eval '%%undefine %s'" %
-                                        self._runtime_disttag)
+                self._rpmdefines.extend(['--eval', '%%undefine %s' %
+                                        self._runtime_disttag])
 
     def load_target(self):
         """This creates the target attribute based on branch merge"""

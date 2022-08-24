@@ -3,6 +3,6 @@ coverage<5.0.0
 cccolutils
 gitpython
 freezegun
-rpm
+rpm < 0.0.3
 pytest
 pytest-cov

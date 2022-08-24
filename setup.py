@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import os
-import sys
 
 from setuptools import find_packages, setup
 
@@ -23,19 +22,12 @@ tests_requirements = os.path.join(project_dir, 'tests-requirements.txt')
 
 with open(requirements, 'r') as f:
     install_requires = [line.strip() for line in f]
+install_requires += [
+    'distro',
+]
 
 with open(tests_requirements, 'r') as f:
     tests_require = [line.strip() for line in f]
-
-ver = sys.version_info
-if ver[0] <= 2 and ver[1] < 7:
-    tests_require += [
-        'unittest2'
-    ]
-else:
-    install_requires += [
-        'distro',
-    ]
 
 
 setup(
@@ -76,5 +68,8 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
 )

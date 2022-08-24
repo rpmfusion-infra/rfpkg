@@ -2,8 +2,14 @@
 
 import os
 import shutil
-import unittest
-import mock
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 from six.moves import configparser
 import tempfile
 import subprocess
@@ -53,7 +59,7 @@ class RetireTestCase(unittest.TestCase):
         return out.strip()
 
     def _fake_client(self, args):
-        config = configparser.SafeConfigParser()
+        config = configparser.ConfigParser()
         config.read(TEST_CONFIG)
         with mock.patch('sys.argv', new=args):
             client = rfpkgClient(config)
@@ -100,3 +106,36 @@ class RetireTestCase(unittest.TestCase):
         self.assertEqual(len(client.cmd.push.call_args_list), 1)
         self.assertEqual(PkgDB.return_value.retire_packages.call_args_list,
                          [mock.call('rfpkg', 'master', namespace='rpms')])
+
+    """
+    @mock.patch("requests.get", new=lambda *args, **kwargs: mock.Mock(status_code=404))
+    @mock.patch('rpmfusion_cert.read_user_cert')
+    @mock.patch('rfpkgdb2client.PkgDB')
+    def test_package_is_retired_already(self):
+        self._setup_repo('ssh://git@pkgs.example.com/rfpkg')
+        with open(os.path.join(self.tmpdir, 'dead.package'), 'w') as f:
+            f.write('dead package')
+
+        args = ['rfpkg', '--release=master', 'retire', 'my reason']
+        client = self._fake_client(args)
+        client.log = mock.Mock()
+        client.retire()
+        args, kwargs = client.log.warn.call_args
+        self.assertIn('dead.package found, package or module is already retired',
+                      args[0])
+
+    @mock.patch(
+        "requests.get",
+        new=lambda *args, **kwargs: mock.Mock(
+            status_code=200, ok=True, json=lambda: {"state": "archived"}
+        ),
+    )
+    def test_package_on_retired(self):
+        self._setup_repo("ssh://git@pkgs.example.com/rfpkg")
+        args = ["rfpkg", "--release=master", "retire", "my reason"]
+
+        client = self._fake_client(args)
+        client.retire()
+        args, kwargs = client.log.error.call_args
+        self.assertIn("retire operation is not allowed", args[0])
+    """

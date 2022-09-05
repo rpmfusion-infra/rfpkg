@@ -190,8 +190,8 @@ class Commands(pyrpkg.Commands):
             'opencore-amr', 'rtmpdump', 'vo-amrwbenc', 'x264', 'x265', 'xvidcore', 'zsnes',
             'Cg', 'dega-sdl', 'gens', 'pcsx2', 'steam', 'xorg-x11-drv-nvidia',
             'xorg-x11-drv-nvidia-470xx', 'xorg-x11-drv-nvidia-390xx',
-            'xorg-x11-drv-nvidia-340xx', 'unace'] and self.branch_merge not in ['el6', 'f28',
-            'f29', 'f30'] and self.namespace in ['free', 'nonfree']:
+            'xorg-x11-drv-nvidia-340xx', 'unace'] and self.branch_merge not in ['el8', 'el9',
+            'el9-next'] and self.namespace in ['free', 'nonfree']:
             self._target += "-multilibs"
 
     def _tag2version(self, dest_tag):

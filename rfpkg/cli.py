@@ -25,6 +25,8 @@ else:
     import pkgdb2client as rfpkgdb2client
 
 from pyrpkg.cli import cliClient
+from rfpkg.completers import (build_arches, list_targets,
+                               rfpkg_packages, distgit_branches)
 
 RELEASE_BRANCH_REGEX = r'^(f\d+|el\d+|epel\d+)$'
 LOCAL_PACKAGE_CONFIG = 'package.cfg'
@@ -32,6 +34,8 @@ LOCAL_PACKAGE_CONFIG = 'package.cfg'
 class rfpkgClient(cliClient):
     def __init__(self, config, name=None):
         self.DEFAULT_CLI_NAME = 'rfpkg'
+        super(rfpkgClient, self).setup_completers()
+        self.setup_completers()
         super(rfpkgClient, self).__init__(config, name)
         self.setup_completers()
         if self._get_bool_opt('lookaside_namespaced') is False :
@@ -63,6 +67,33 @@ class rfpkgClient(cliClient):
         opt_release.help = 'Override the discovered release, e.g. f25, which has to match ' \
                            'the remote branch name created in package repository. ' \
                            'Particularly, use master to build RPMs for rawhide.'
+
+    def setup_completers(self):
+        """
+        Set specific argument completers for rfpkg. Structure, where
+        are these assignments (name -> method) stored, is in the parent
+        class and have to be filled before __init__ (containing argument
+        parser definitions) is called there.
+        """
+        cliClient.set_completer("build_arches", build_arches)
+        cliClient.set_completer("list_targets", list_targets)
+        cliClient.set_completer("packages", rfpkg_packages)
+        cliClient.set_completer("branches", distgit_branches)
+
+    # Target functions go here
+    def _format_update_clog(self, clog):
+        ''' Format clog for the update template. '''
+        lines = [ln for ln in clog.split('\n') if ln]
+        if len(lines) == 0:
+            return "- Rebuilt.", ""
+        elif len(lines) == 1:
+            return lines[0], ""
+        log = ["# Changelog:"]
+        log.append('# - ' + lines[0])
+        for ln in lines[1:]:
+            log.append('# ' + ln)
+        log.append('#')
+        return lines[0], "\n".join(log)
 
     def retire(self):
         try:

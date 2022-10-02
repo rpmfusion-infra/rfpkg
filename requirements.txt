@@ -1,3 +1,4 @@
+argcomplete
 openidc-client
 rpkg >= 1.65
 six

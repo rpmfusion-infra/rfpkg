@@ -1,3 +1,4 @@
+argcomplete
 openidc-client
 python-bugzilla
 rpkg >= 1.65

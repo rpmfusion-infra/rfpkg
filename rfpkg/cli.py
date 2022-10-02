@@ -26,6 +26,8 @@ else:
     import pkgdb2client as rfpkgdb2client
 
 from pyrpkg.cli import cliClient
+from rfpkg.completers import (build_arches, list_targets,
+                               rfpkg_packages, distgit_branches)
 
 RELEASE_BRANCH_REGEX = r'^(f\d+|el\d+|epel\d+)$'
 LOCAL_PACKAGE_CONFIG = 'package.cfg'
@@ -33,6 +35,8 @@ LOCAL_PACKAGE_CONFIG = 'package.cfg'
 class rfpkgClient(cliClient):
     def __init__(self, config, name=None):
         self.DEFAULT_CLI_NAME = 'rfpkg'
+        super(rfpkgClient, self).setup_completers()
+        self.setup_completers()
         super(rfpkgClient, self).__init__(config, name)
         self.setup_fed_subparsers()
 
@@ -59,6 +63,18 @@ class rfpkgClient(cliClient):
         # Don't register the update command, as rpmfusion does not have a
         # bodhi instance to send update requests to
         #self.register_update()
+
+    def setup_completers(self):
+        """
+        Set specific argument completers for rfpkg. Structure, where
+        are these assignments (name -> method) stored, is in the parent
+        class and have to be filled before __init__ (containing argument
+        parser definitions) is called there.
+        """
+        cliClient.set_completer("build_arches", build_arches)
+        cliClient.set_completer("list_targets", list_targets)
+        cliClient.set_completer("packages", rfpkg_packages)
+        cliClient.set_completer("branches", distgit_branches)
 
     # Target functions go here
     def _format_update_clog(self, clog):

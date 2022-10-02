@@ -22,23 +22,22 @@ _rfpkg()
     }
 
     local cur prev
-    # _get_comp_words_by_ref is in bash-completion >= 1.2, which EL-5 lacks.
-    if type _get_comp_words_by_ref &>/dev/null; then
-        _get_comp_words_by_ref cur prev
-    else
-        cur="${COMP_WORDS[COMP_CWORD]}"
-        prev="${COMP_WORDS[COMP_CWORD-1]}"
-    fi
+    _get_comp_words_by_ref cur prev
 
     # global options
 
     local options="--help -v -q"
-    local options_value="--release --user --path"
+    local options_value="--release --user --path --user-config --name --namespace"
     local commands="build chain-build ci clean clog clone co commit compile \
     container-build diff gimmespec giturl help gitbuildhash import install lint \
-    local mockbuild mock-config new new-sources patch prep pull push retire \
-    scratch-build sources srpm switch-branch tag unused-patches upload \
-    verify-files verrel"
+    local mockbuild mock-config module-build module-build-cancel \
+    module-build-local module-build-info module-build-watch module-overview \
+    module-scratch-build \
+    new new-sources patch prep pull push retire request-branch request-repo \
+    request-tests-repo request-side-tag list-side-tags remove-side-tag \
+    scratch-build set-distgit-token set-pagure-token sources srpm switch-branch \
+    tag unused-patches update upload \
+    verify-files verrel override fork"
 
     # parse main options and get command
 
@@ -72,12 +71,13 @@ _rfpkg()
         fi
 
         case "$prev" in
-            --release)
-                ;;
-            --user|-u)
+            --release | --user | -u | --config)
                 ;;
             --path)
                 _filedir_exclude_paths
+                ;;
+            --namespace)
+                COMPREPLY=( $(compgen -W "$(_rfpkg_namespaces)" -- "$cur") )
                 ;;
             *)
                 COMPREPLY=( $(compgen -W "$commands" -- "$cur") )
@@ -90,14 +90,17 @@ _rfpkg()
     # parse command specific options
 
     local options=
-    local options_target= options_arches= options_branch= options_string= options_file= options_dir= options_srpm= options_mroot= options_builder=
+    local options_target= options_arches= options_branch= options_string= options_file= options_dir= options_srpm= options_mroot= options_builder= options_namespace=
+    local options_update_type= options_update_request=
+    local options_yaml=
     local after= after_more=
 
     case $command in
-        help|gimmespec|gitbuildhash|giturl|lint|new|push|unused-patches|verrel)
+        help|gimmespec|gitbuildhash|giturl|new|push|unused-patches|verrel|set-distgit-token|set-pagure-token)
             ;;
         build)
-            options="--nowait --background --skip-tag --scratch"
+            options="--nowait --background --skip-tag --scratch --skip-remote-rules-validation --fail-fast"
+            options_arches="--arches"
             options_srpm="--srpm"
             options_target="--target"
             ;;
@@ -119,7 +122,7 @@ _rfpkg()
             after="package"
             ;;
         commit|ci)
-            options="--push --clog --raw --tag"
+            options="--push --clog --raw --tag --with-changelog"
             options_string="--message"
             options_file="--file"
             after="file"
@@ -127,13 +130,13 @@ _rfpkg()
             ;;
         compile|install)
             options="--short-circuit"
-            options_arch="--arch"
+            options_arches="--arch"
             options_dir="--builddir"
             ;;
         container-build)
-            options="--scratch"
+            options="--scratch --nowait --repo-url --skip-remote-rules-validation"
+            options_arches="--arches"
             options_target="--target"
-            options_builder="--build-with"
             ;;
         diff)
             options="--cached"
@@ -147,33 +150,80 @@ _rfpkg()
             ;;
         lint)
             options="--info"
+            options_file="--rpmlintconf"
+            ;;
+        list-side-tags)
+            options="--mine"
+            options_string="--user --base-tag"
             ;;
         local)
             options="--md5"
-            options_arch="--arch"
+            options_arches="--arch"
+            options_string="--with --without"
             options_dir="--builddir"
             ;;
         mock-config)
             options="--target"
-            options_arch="--arch"
+            options_arches="--arch"
             ;;
         mockbuild)
-            options="--md5 --no-clean --no-cleanup-after --no-clean-all"
-            options_mroot="--root"
+            options="--md5 --no-clean --no-cleanup-after --no-clean-all --shell"
+            options_string="--with --without"
+            options_mroot="--root --mock-config"
+            ;;
+        module-build)
+            options="--scratch --watch"
+            options_string="--optional --requires --buildrequires"
+            options_yaml="--file"
+            options_srpm="--srpm"
+            ;;
+        module-build-local)
+            options="--skip-tests"
+            options_string="--add-local-build --stream --set-default-stream"
+            options_yaml="--file"
+            options_srpm="--srpm"
+            ;;
+        module-overview)
+            options="--unfinished"
+            options_string="--limit"
+            ;;
+        module-scratch-build)
+            options="--watch"
+            options_string="--optional --requires --buildrequires"
+            options_yaml="--file"
+            options_srpm="--srpm"
             ;;
         patch)
             options="--rediff"
             options_string="--suffix"
             ;;
         prep|verify-files)
-            options_arch="--arch"
+            options_arches="--arch"
             options_dir="--builddir"
             ;;
         pull)
             options="--rebase --no-rebase"
             ;;
+        remove-side-tag)
+            after_more=true
+            ;;
         retire)
             after_more=true
+            ;;
+        request-branch)
+            options="--no-git-branch --all-releases --no-auto-module"
+            options_string="--sl --repo"
+            ;;
+        request-repo)
+            options="--exception --no-initial-commit"
+            options_string="--description --monitor --upstreamurl --summary"
+            options_namespace="--namespace"
+            ;;
+        request-tests-repo)
+            options_string="--bug"
+            ;;
+        request-side-tag)
+            options_string="--base-tag"
             ;;
         scratch-build)
             options="--nowait --background"
@@ -201,10 +251,19 @@ _rfpkg()
             after="file"
             after_more=true
             ;;
+        update)
+            options="--not-close-bugs --suggest-reboot --disable-autokarma"
+            options_string="--notes --bugs --stable-karma --unstable-karma"
+            options_update_type="--type"
+            options_update_request="--request"
+            ;;
     esac
 
     local all_options="--help $options"
-    local all_options_value="$options_target $options_arches $options_branch $options_string $options_file $options_dir $options_srpm $options_mroot $options_builder"
+    local all_options_value="$options_target $options_arches $options_branch \
+    $options_string $options_file $options_dir $options_srpm $options_mroot \
+    $options_builder $options_namespace $options_update_type $options_update_request \
+    $options_yaml"
 
     # count non-option parameters
 
@@ -234,11 +293,11 @@ _rfpkg()
     elif [[ -n $options_arches ]] && in_array "$last_option" "$options_arches"; then
         COMPREPLY=( $(compgen -W "$(_rfpkg_arch) $all_options" -- "$cur") )
 
-    elif [[ -n $options_builder ]] && in_array "$prev" "$options_builder"; then
-        COMPREPLY=( $(compgen -W "$(_rfpkg_builder)" -- "$cur") )
-
     elif [[ -n $options_srpm ]] && in_array "$prev" "$options_srpm"; then
         _filedir_exclude_paths "*.src.rpm"
+
+    elif [[ -n $options_yaml ]] && in_array "$prev" "$options_yaml"; then
+        _filedir_exclude_paths "yaml"
 
     elif [[ -n $options_branch ]] && in_array "$prev" "$options_branch"; then
         COMPREPLY=( $(compgen -W "$(_rfpkg_branch "$path")" -- "$cur") )
@@ -259,6 +318,15 @@ _rfpkg()
         elif declare -F _xfunc &>/dev/null; then
             _xfunc mock _mock_root
         fi
+
+    elif [[ -n $options_namespace ]] && in_array "$prev" "$options_namespace"; then
+        COMPREPLY=( $(compgen -W "$(_rfpkg_namespaces)" -- "$cur") )
+
+    elif [[ -n $options_update_type ]] && in_array "$prev" "$options_update_type"; then
+        COMPREPLY=( $(compgen -W "bugfix security enhancement newpackage" -- "$cur") )
+
+    elif [[ -n $options_update_request ]] && in_array "$prev" "$options_update_request"; then
+        COMPREPLY=( $(compgen -W "testing stable" -- "$cur") )
 
     else
         local after_options=
@@ -291,12 +359,7 @@ _rfpkg_target()
 
 _rfpkg_arch()
 {
-    echo "i386 i686 x86_64 armv5tel armv7hl armv7hnl ppc ppc64 ppc64p7 s390 s390x"
-}
-
-_rfpkg_builder()
-{
-    echo "koji osbs"
+    echo "i386 i686 x86_64 armv5tel armv7hl armv7hnl ppc ppc64 ppc64le ppc64p7 s390 s390x"
 }
 
 _rfpkg_branch()
@@ -312,6 +375,12 @@ _rfpkg_package()
 {
     repoquery -C --qf=%{sourcerpm} "$1*" 2>/dev/null | sort -u | sed -r 's/(-[^-]*){2}\.src\.rpm$//'
 }
+
+_rfpkg_namespaces()
+{
+    grep "^distgit_namespaces =" /etc/rpkg/rfpkg.conf | cut -d'=' -f2
+}
+
 
 # Local variables:
 # mode: shell-script

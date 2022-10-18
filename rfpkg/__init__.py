@@ -185,7 +185,7 @@ class Commands(pyrpkg.Commands):
         else:
             self._target = '%s-%s' % ( self.branch_merge , self.namespace)
         if self._package_name_spec in ['buildsys-build-rpmfusion', 'gstreamer1-libav',
-            'gstreamer1-plugins-bad-freeworld', 'gstreamer1-plugins-ugly', 'faad2', 'ffmpeg',
+            'gstreamer1-plugins-bad-freeworld', 'gstreamer1-plugins-ugly', 'fdk-aac', 'faad2', 'ffmpeg',
             'libde265', 'libdca', 'libmms', 'libquicktime', 'libva-intel-driver', 'mjpegtools',
             'mesa-freeworld', 'nvidia-vaapi-driver',
             'opencore-amr', 'rtmpdump', 'vo-amrwbenc', 'x264', 'x265', 'xvidcore', 'zsnes',

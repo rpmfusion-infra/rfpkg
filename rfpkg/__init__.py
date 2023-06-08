@@ -133,7 +133,7 @@ class Commands(pyrpkg.Commands):
             self._distval = self.branch_merge.split('f')[1]
             self._distvar = 'fedora'
             self._disttag = 'fc%s' % self._distval
-            self.mockconfig = 'fedora-%s-%s-rpmfusion_%s' % (self._distval, self.localarch, self.namespace)
+            self.mockconfig = 'fedora+rpmfusion_%s-%s-%s' % (self.namespace, self._distval, self.localarch)
             self.override = 'f%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'rhel'
         # Works until RHEL 10
@@ -142,7 +142,7 @@ class Commands(pyrpkg.Commands):
             self._distval = self.branch_merge.split('el')[1]
             self._distvar = 'rhel'
             self._disttag = 'el%s' % self._distval
-            self.mockconfig = 'epel-%s-%s-rpmfusion_%s' % (self._distval, self.localarch, self.namespace)
+            self.mockconfig = 'epel+rpmfusion_%s-%s-%s' % (self.namespace, self._distval, self.localarch)
             self.override = 'epel%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'fedora'
         # master
@@ -150,7 +150,7 @@ class Commands(pyrpkg.Commands):
             self._distval = self._findmasterbranch()
             self._distvar = 'fedora'
             self._disttag = 'fc%s' % self._distval
-            self.mockconfig = 'fedora-rawhide-%s-rpmfusion_%s' % (self.localarch, self.namespace)
+            self.mockconfig = 'fedora+rpmfusion_%s-rawhide-%s' % (self.namespace, self.localarch)
             self.override = None
             self._distunset = 'rhel'
         # If we don't match one of the above, punt

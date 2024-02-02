@@ -32,7 +32,7 @@ with open(tests_requirements, 'r') as f:
 
 setup(
     name="rfpkg",
-    version="1.27.2",
+    version="1.27.3",
     author="Nicolas Chauvet",
     author_email="kwizart@gmail.com",
     description=("RPM Fusion plugin to rpkg to manage "

@@ -155,9 +155,12 @@ class Commands(pyrpkg.Commands):
             self._distunset = 'rhel'
         # If we don't match one of the above, punt
         else:
-            raise pyrpkg.rpkgError('Could not find the release/dist from branch name '
-                                   '%s\nPlease specify with --release' %
-                                   self.branch_merge)
+            if self.dist:
+                msg = 'Invalid release \'%s\'.' % self.branch_merge
+            else:
+                msg = ('Could not find release from branch name \'%s\'. '
+                       'Please specify with --release.' % self.branch_merge)
+            raise pyrpkg.rpkgError(msg)
         self._rpmdefines = ['--define', '_sourcedir %s' % self.path,
                             '--define', '_specdir %s' % self.path,
                             '--define', '_builddir %s' % self.path,
@@ -194,6 +197,9 @@ class Commands(pyrpkg.Commands):
             'xorg-x11-drv-nvidia-340xx', 'unace'] and self.branch_merge not in ['el8', 'el9',
             'el9-next'] and self.namespace in ['free', 'nonfree']:
             self._target += "-multilibs"
+
+    def default_branch_merge(self):
+        return "master"
 
     def _tag2version(self, dest_tag):
         """ get the '26' part of 'f26-foo' string """

@@ -91,19 +91,21 @@ class Commands(pyrpkg.Commands):
     def load_ns_repo_name(self):
         """Loads a RPM Fusion package repository."""
 
-        if self.push_url:
-            parts = urlparse(self.push_url)
+        try:
+            if self.push_url:
+                parts = urlparse(self.push_url)
 
-            if self.distgit_namespaced:
-                path_parts = [p for p in parts.path.split("/") if p]
-                ns_repo_name = "/".join(path_parts[-2:])
-                _ns = path_parts[-2]
+                if self.distgit_namespaced:
+                    path_parts = [p for p in parts.path.split("/") if p]
+                    ns_repo_name = "/".join(path_parts[-2:])
+                    _ns = path_parts[-2]
 
-            if ns_repo_name.endswith('.git'):
-                ns_repo_name = ns_repo_name[:-len('.git')]
-            self._ns_repo_name = ns_repo_name
-            self.namespace = _ns
-            return
+                if ns_repo_name.endswith('.git'):
+                    ns_repo_name = ns_repo_name[:-len('.git')]
+                self._ns_repo_name = ns_repo_name
+                self.namespace = _ns
+        except:
+            self.namespace = "free"
 
     @cached_property
     def lookasidecache(self):

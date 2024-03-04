@@ -88,7 +88,7 @@ class rfpkgClient(cliClient):
                               'overwrite existing dead.package file')
             else:
                 self.cmd.retire(self.args.reason)
-            self.push()
+                self.push()
 
             branch = self.cmd.branch_merge
             pkgdb = rfpkgdb2client.PkgDB(

@@ -92,7 +92,7 @@ class Commands(pyrpkg.Commands):
         """Loads a RPM Fusion package repository."""
 
         try:
-            if self.push_url:
+            if self.push_url and "rpmfusion.org" in self.push_url:
                 parts = urlparse(self.push_url)
 
                 if self.distgit_namespaced:

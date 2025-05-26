@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rfpkg"
+version = "1.27.5"
+description = "RPM Fusion plugin to rpkg to manage package sources in a git repository"
+license = { text = "GPLv2+" }
+authors = [
+  { name = "Nicolas Chauvet", email = "kwizart@gmail.com" },
+]
+readme = "README"
+requires-python = ">=2.7"
+dependencies = [
+  "openidc-client",
+  "rpkg >= 1.65",
+  "six",
+  "distro",
+]
+
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/rpmfusion-infra/rfpkg"
+
+[project.scripts]
+rfpkg = "rfpkg.__main__:main"
+
+[project.optional-dependencies]
+tests = [
+  "mock >= 1.0.1",
+  "coverage < 5.0.0",
+  "cccolutils",
+  "gitpython",
+  "freezegun",
+  "rpm < 0.0.3",
+  "pytest",
+  "pytest-cov",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rfpkg*"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.data-files]
+"share/bash-completion/completions" = ["conf/bash-completion/rfpkg.bash"]
+"etc/rpkg" = ["conf/etc/rpkg/rfpkg.conf"]
+"share/zsh/site-functions" = ["conf/zsh-completion/_rfpkg"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+
+[tool.flake8]
+max-line-length = 100
+

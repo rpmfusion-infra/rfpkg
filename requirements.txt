@@ -1,4 +1,3 @@
 openidc-client
-python-bugzilla
 rpkg >= 1.65
 six

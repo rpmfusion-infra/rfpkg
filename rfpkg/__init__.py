@@ -148,6 +148,13 @@ class Commands(pyrpkg.Commands):
             self.mockconfig = 'epel+rpmfusion_%s-%s-%s' % (self.namespace, self._distval, self.localarch)
             self.override = 'epel%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'fedora'
+        elif re.match(r'epel\d+-next$', self.branch_merge):
+            self._distval = re.search(r'\d+', self.branch_merge).group(0)
+            self._distvar = 'rhel'
+            self._disttag = 'el%s.next' % self._distval
+            self.mockconfig = 'epel-next+rpmfusion_%s-%s-%s' % (self.namespace, self._distval, self.localarch)
+            self.override = 'epel%s-next-%s-override' % (self._distval, self.namespace)
+            self._distunset = 'fedora'
         # master
         elif re.match(r'master$', self.branch_merge):
             self._distval = self._findmasterbranch()

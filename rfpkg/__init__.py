@@ -140,8 +140,8 @@ class Commands(pyrpkg.Commands):
             self.override = 'f%s-%s-override' % (self._distval, self.namespace)
             self._distunset = 'rhel'
         # Works until RHEL 10
-        elif re.match(r'el\d$', self.branch_merge) or \
-            re.match(r'epel\d$', self.branch_merge):
+        elif re.match(r'el\d{1,2}$', self.branch_merge) or \
+            re.match(r'epel\d{1,2}$', self.branch_merge):
             self._distval = self.branch_merge.split('el')[1]
             self._distvar = 'rhel'
             self._disttag = 'el%s' % self._distval

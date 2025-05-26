@@ -91,6 +91,7 @@ class Commands(pyrpkg.Commands):
     def load_ns_repo_name(self):
         """Loads a RPM Fusion package repository."""
 
+        self.namespace = "free"
         try:
             if self.push_url and "rpmfusion.org" in self.push_url:
                 parts = urlparse(self.push_url)
@@ -105,7 +106,7 @@ class Commands(pyrpkg.Commands):
                 self._ns_repo_name = ns_repo_name
                 self.namespace = _ns
         except:
-            self.namespace = "free"
+            pass
 
     @cached_property
     def lookasidecache(self):

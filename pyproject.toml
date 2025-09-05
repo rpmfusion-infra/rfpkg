@@ -41,13 +41,7 @@ rfpkg = "rfpkg.__main__:main"
 [project.optional-dependencies]
 tests = [
   "mock >= 1.0.1",
-  "coverage < 5.0.0",
-  "cccolutils",
-  "gitpython",
-  "freezegun",
-  "rpm < 0.0.3",
   "pytest",
-  "pytest-cov",
 ]
 
 [tool.setuptools.packages.find]

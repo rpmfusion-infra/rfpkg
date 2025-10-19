@@ -66,7 +66,7 @@ class Commands(pyrpkg.Commands):
         try:
             self._user = rpmfusion_cert.read_user_cert()
         except Exception as e:
-            self.log.debug('Could not read RPM Fusion cert, falling back to '
+            self.log.warning('Could not read RPM Fusion cert, falling back to '
                            'default method: %s' % e)
             super(Commands, self).load_user()
 

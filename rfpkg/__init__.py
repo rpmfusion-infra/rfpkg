@@ -122,7 +122,6 @@ class Commands(pyrpkg.Commands):
 
         return RPMFusionLookasideCache(
             self.lookasidehash, self.lookaside, self.lookaside_cgi,
-            client_cert=self._cert_file, ca_cert=self._ca_cert, namespace=self.ns,
             attempts=self.lookaside_attempts, delay=self.lookaside_delay)
 
     # Overloaded property loaders

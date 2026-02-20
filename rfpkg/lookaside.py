@@ -19,16 +19,14 @@ from pyrpkg.lookaside import CGILookasideCache
 
 
 class RPMFusionLookasideCache(CGILookasideCache):
-    def __init__(self, hashtype, download_url, upload_url,
-                 client_cert, ca_cert, namespace, attempts=None, delay=None):
+    def __init__(self, hashtype, download_url, upload_url, attempts=None, delay=None):
         super(RPMFusionLookasideCache, self).__init__(
-            hashtype, download_url, upload_url, client_cert=client_cert,
-            ca_cert=ca_cert, attempts=attempts, delay=delay)
+            hashtype, download_url, upload_url, attempts=attempts, delay=delay)
 
         self.download_path_md5 = (
-            namespace + '/%(name)s/%(filename)s/%(hash)s/%(filename)s')
+            '%(name)s/%(filename)s/%(hash)s/%(filename)s')
         self.download_path = (
-            namespace + '/%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s')
+            '%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s')
 
     def get_download_url(self, name, filename, hash, hashtype=None, **kwargs):
         path_dict = {'name': name, 'filename': filename,

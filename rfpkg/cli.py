@@ -34,6 +34,9 @@ class rfpkgClient(cliClient):
         self.DEFAULT_CLI_NAME = 'rfpkg'
         super(rfpkgClient, self).__init__(config, name)
         self.setup_completers()
+        if self._get_bool_opt('lookaside_namespaced') is False :
+            print("Please use the updated /etc/rpkg/rfpkg.conf, because now rfpkg use lookaside_namespaced = True")
+            sys.exit(1)
 
     def load_cmd(self):
         super().load_cmd()

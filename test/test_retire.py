@@ -89,7 +89,7 @@ class RetireTestCase(unittest.TestCase):
         self.assertRetired('my reason')
         self.assertEqual(len(client.cmd.push.call_args_list), 1)
         self.assertEqual(PkgDB.return_value.retire_packages.call_args_list,
-                         [mock.call('rfpkg', 'master', namespace='rpms')])
+                         [mock.call('rfpkg', 'master', namespace='free')])
 
     @mock.patch('rpmfusion_cert.read_user_cert')
     @mock.patch('rfpkgdb2client.PkgDB')
@@ -105,7 +105,7 @@ class RetireTestCase(unittest.TestCase):
         self.assertRetired('my reason')
         self.assertEqual(len(client.cmd.push.call_args_list), 1)
         self.assertEqual(PkgDB.return_value.retire_packages.call_args_list,
-                         [mock.call('rfpkg', 'master', namespace='rpms')])
+                         [mock.call('rfpkg', 'master', namespace='free')])
 
     """
     @mock.patch("requests.get", new=lambda *args, **kwargs: mock.Mock(status_code=404))

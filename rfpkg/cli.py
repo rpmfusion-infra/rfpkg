@@ -18,7 +18,6 @@ import sys
 import os
 import logging
 import six
-import textwrap
 
 if six.PY3:
     import rfpkgdb2client
@@ -35,6 +34,15 @@ class rfpkgClient(cliClient):
         self.DEFAULT_CLI_NAME = 'rfpkg'
         super(rfpkgClient, self).__init__(config, name)
         self.setup_completers()
+
+    def load_cmd(self):
+        super().load_cmd()
+
+        distgit_namespaces = []
+        distgit_namespaced = self._get_bool_opt('distgit_namespaced')
+        if distgit_namespaced and self.config.has_option(self.name, 'distgit_namespaces'):
+            distgit_namespaces = self.config.get(self.name, 'distgit_namespaces').split()
+        self._cmd.distgit_namespaces = distgit_namespaces
 
     def setup_argparser(self):
         super(rfpkgClient, self).setup_argparser()

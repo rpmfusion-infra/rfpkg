@@ -55,9 +55,10 @@ class Commands(pyrpkg.Commands):
         self._ca_cert = None
 
         # RPM Fusion default namespace
-        self.namespace = 'free'
+        self.default_namespace = 'free'
         self.source_entry_type = 'bsd'
         self.hashtype = 'sha512'
+
 
     # Add new properties
     def load_user(self):
@@ -86,6 +87,30 @@ class Commands(pyrpkg.Commands):
         CA certificate.
         """
         return os.path.expanduser('~/.rpmfusion-server-ca.cert')
+
+    def load_ns(self):
+        """Loads the RPM Fusion namespace"""
+
+        self._ns = None
+        try:
+            if self.distgit_namespaced:
+                if self.push_url:
+                    parts = urllib.parse.urlparse(self.push_url)
+
+                    path_parts = [p for p in parts.path.split("/") if p]
+                    if len(path_parts) == 2:
+                        self._ns = path_parts[-2]
+            else:
+                self.log.info("Could not find ns, distgit is not namespaced")
+        except pyrpkg.rpkgError:
+            self.log.debug('Failed to get ns from Git url or pushurl')
+
+        if self.distgit_namespaced:
+            if self._ns not in self.distgit_namespaces:
+                self.log.warning('namespace {0} is not valid.'
+                    ' Use --name and optional --namespace.'
+                    ' Falling back to the default namespace {1}'.format(self._ns, self.default_namespace))
+                self._ns = self.default_namespace
 
     @cached_property
     def lookasidecache(self):

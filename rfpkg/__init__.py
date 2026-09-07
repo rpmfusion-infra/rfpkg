@@ -206,14 +206,7 @@ class Commands(pyrpkg.Commands):
             self._target = 'rawhide-%s' % self.ns
         else:
             self._target = '%s-%s' % ( self.branch_merge , self.ns)
-        if self._package_name_spec in ['buildsys-build-rpmfusion', 'gstreamer1-libav',
-            'gstreamer1-plugins-bad-freeworld', 'gstreamer1-plugins-ugly', 'fdk-aac', 'faad2', 'ffmpeg',
-            'libde265', 'libdca', 'libmms', 'libquicktime', 'libva-intel-driver', 'mjpegtools',
-            'mesa-freeworld', 'nvidia-vaapi-driver', 'intel-media-driver',
-            'opencore-amr', 'rtmpdump', 'vo-amrwbenc', 'x264', 'x265', 'xvidcore', 'zsnes',
-            'Cg', 'dega-sdl', 'gens', 'pcsx2', 'steam', 'xorg-x11-drv-nvidia',
-            'xorg-x11-drv-nvidia-580xx', 'xorg-x11-drv-nvidia-470xx', 'xorg-x11-drv-nvidia-390xx',
-            'xorg-x11-drv-nvidia-340xx', 'unace'] and not self.branch_merge.startswith("el") and self.ns in ['free', 'nonfree']:
+        if self._package_name_spec in self.multilib_pkgs and not self.branch_merge.startswith("el") and self.ns in ['free', 'nonfree']:
             self._target += "-multilibs"
 
     def default_branch_merge(self):

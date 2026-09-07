@@ -44,6 +44,11 @@ class rfpkgClient(cliClient):
             distgit_namespaces = self.config.get(self.name, 'distgit_namespaces').split()
         self._cmd.distgit_namespaces = distgit_namespaces
 
+        multilib_pkgs = []
+        if self.config.has_option(self.name, 'multilib_pkgs'):
+            multilib_pkgs = self.config.get(self.name, 'multilib_pkgs').split()
+        self._cmd.multilib_pkgs = multilib_pkgs
+
     def setup_argparser(self):
         super(rfpkgClient, self).setup_argparser()
 

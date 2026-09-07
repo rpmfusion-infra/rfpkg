@@ -34,7 +34,7 @@ class rfpkgClient(cliClient):
     def __init__(self, config, name=None):
         self.DEFAULT_CLI_NAME = 'rfpkg'
         super(rfpkgClient, self).__init__(config, name)
-        self.setup_fed_subparsers()
+        self.setup_completers()
 
     def setup_argparser(self):
         super(rfpkgClient, self).setup_argparser()
@@ -47,33 +47,6 @@ class rfpkgClient(cliClient):
         opt_release.help = 'Override the discovered release, e.g. f25, which has to match ' \
                            'the remote branch name created in package repository. ' \
                            'Particularly, use master to build RPMs for rawhide.'
-
-    def setup_fed_subparsers(self):
-        """Register the fedora specific targets"""
-
-        # Don't register again the retire command as it is already done
-        # by pyrpkg. Starting Python 3.11, it creates an error.
-        # https://github.com/python/cpython/pull/18605
-        #self.register_retire()
-
-        # Don't register the update command, as rpmfusion does not have a
-        # bodhi instance to send update requests to
-        #self.register_update()
-
-    # Target functions go here
-    def _format_update_clog(self, clog):
-        ''' Format clog for the update template. '''
-        lines = [ln for ln in clog.split('\n') if ln]
-        if len(lines) == 0:
-            return "- Rebuilt.", ""
-        elif len(lines) == 1:
-            return lines[0], ""
-        log = ["# Changelog:"]
-        log.append('# - ' + lines[0])
-        for ln in lines[1:]:
-            log.append('# ' + ln)
-        log.append('#')
-        return lines[0], "\n".join(log)
 
     def retire(self):
         try:
@@ -99,35 +72,3 @@ class rfpkgClient(cliClient):
             sys.exit(1)
 
 
-if __name__ == '__main__':
-    client = cliClient()
-    client._do_imports()
-    client.parse_cmdline()
-
-    if not client.args.path:
-        try:
-            client.args.path = os.getcwd()
-        except:
-            print('Could not get current path, have you deleted it?')
-            sys.exit(1)
-
-    # setup the logger -- This logger will take things of INFO or DEBUG and
-    # log it to stdout.  Anything above that (WARN, ERROR, CRITICAL) will go
-    # to stderr.  Normal operation will show anything INFO and above.
-    # Quiet hides INFO, while Verbose exposes DEBUG.  In all cases WARN or
-    # higher are exposed (via stderr).
-    log = client.site.log
-    client.setupLogging(log)
-
-    if client.args.v:
-        log.setLevel(logging.DEBUG)
-    elif client.args.q:
-        log.setLevel(logging.WARNING)
-    else:
-        log.setLevel(logging.INFO)
-
-    # Run the necessary command
-    try:
-        client.args.command()
-    except KeyboardInterrupt:
-        pass

@@ -14,9 +14,9 @@ import pyrpkg
 import os
 import git
 import re
+import urllib
 
 import rpmfusion_cert
-from six.moves.urllib_parse import urlparse
 
 from . import cli
 from .lookaside import RPMFusionLookasideCache
@@ -55,8 +55,7 @@ class Commands(pyrpkg.Commands):
         self._ca_cert = None
 
         # RPM Fusion default namespace
-        self.default_namespace = 'free'
-        self.namespace = None
+        self.namespace = 'free'
         self.source_entry_type = 'bsd'
         self.hashtype = 'sha512'
 
@@ -88,38 +87,18 @@ class Commands(pyrpkg.Commands):
         """
         return os.path.expanduser('~/.rpmfusion-server-ca.cert')
 
-    def load_ns_repo_name(self):
-        """Loads a RPM Fusion package repository."""
-
-        self.namespace = "free"
-        try:
-            if self.push_url and "rpmfusion.org" in self.push_url:
-                parts = urlparse(self.push_url)
-
-                if self.distgit_namespaced:
-                    path_parts = [p for p in parts.path.split("/") if p]
-                    ns_repo_name = "/".join(path_parts[-2:])
-                    _ns = path_parts[-2]
-
-                if ns_repo_name.endswith('.git'):
-                    ns_repo_name = ns_repo_name[:-len('.git')]
-                self._ns_repo_name = ns_repo_name
-                self.namespace = _ns
-        except:
-            pass
-
     @cached_property
     def lookasidecache(self):
         """A helper to interact with the lookaside cache
 
         We override this because we need a different download path.
         """
-        self.load_ns_repo_name()
         self._cert_file = os.path.expanduser('~/.rpmfusion.cert')
 
         return RPMFusionLookasideCache(
             self.lookasidehash, self.lookaside, self.lookaside_cgi,
-            client_cert=self._cert_file, ca_cert=self._ca_cert, namespace=self.namespace)
+            client_cert=self._cert_file, ca_cert=self._ca_cert, namespace=self.ns,
+            attempts=self.lookaside_attempts, delay=self.lookaside_delay)
 
     # Overloaded property loaders
     def load_rpmdefines(self):
@@ -127,7 +106,6 @@ class Commands(pyrpkg.Commands):
 
         # Determine runtime environment
         self._runtime_disttag = self._determine_runtime_env()
-        self.load_ns_repo_name()
 
         # We only match the top level branch name exactly.
         # Anything else is too dangerous and --release should be used
@@ -136,38 +114,38 @@ class Commands(pyrpkg.Commands):
             self._distval = self.branch_merge.split('f')[1]
             self._distvar = 'fedora'
             self._disttag = 'fc%s' % self._distval
-            self.mockconfig = 'fedora+rpmfusion_%s-%s-%s' % (self.namespace, self._distval, self.localarch)
-            self.override = 'f%s-%s-override' % (self._distval, self.namespace)
+            self.mockconfig = 'fedora+rpmfusion_%s-%s-%s' % (self.ns, self._distval, self.localarch)
+            self.override = 'f%s-%s-override' % (self._distval, self.ns)
             self._distunset = 'rhel'
         # Works until RHEL 99
         elif re.match(r'el\d{1,2}$', self.branch_merge):
             self._distval = self.branch_merge.split('el')[1]
             self._distvar = 'rhel'
             self._disttag = 'el%s' % self._distval
-            self.mockconfig = 'epel+rpmfusion_%s-%s-%s' % (self.namespace, self._distval, self.localarch)
-            self.override = 'epel%s-%s-override' % (self._distval, self.namespace)
+            self.mockconfig = 'epel+rpmfusion_%s-%s-%s' % (self.ns, self._distval, self.localarch)
+            self.override = 'epel%s-%s-override' % (self._distval, self.ns)
             self._distunset = 'fedora'
         elif re.match(r'el\d{2,}\.\d+$', self.branch_merge):
             major, minor = branch[2:].split('.')
             self._distval = major
             self._distvar = 'rhel'
             self._disttag = 'el%s_%s' % (major, minor)
-            self.mockconfig = 'epel+rpmfusion_%-%s.%s-%s' % (self.namespace, major, minor, self.localarch)
+            self.mockconfig = 'epel+rpmfusion_%-%s.%s-%s' % (self.ns, major, minor, self.localarch)
             self.override = 'epel%s.%s-override' % (major, minor)
             self._distunset = 'fedora'
         elif re.match(r'el\d+-next$', self.branch_merge):
             self._distval = re.search(r'\d+', self.branch_merge).group(0)
             self._distvar = 'rhel'
             self._disttag = 'el%s.next' % self._distval
-            self.mockconfig = 'epel-next+rpmfusion_%s-%s-%s' % (self.namespace, self._distval, self.localarch)
-            self.override = 'epel%s-next-%s-override' % (self._distval, self.namespace)
+            self.mockconfig = 'epel-next+rpmfusion_%s-%s-%s' % (self.ns, self._distval, self.localarch)
+            self.override = 'epel%s-next-%s-override' % (self._distval, self.ns)
             self._distunset = 'fedora'
         # master
         elif re.match(r'master$', self.branch_merge):
             self._distval = self._findmasterbranch()
             self._distvar = 'fedora'
             self._disttag = 'fc%s' % self._distval
-            self.mockconfig = 'fedora+rpmfusion_%s-rawhide-%s' % (self.namespace, self.localarch)
+            self.mockconfig = 'fedora+rpmfusion_%s-rawhide-%s' % (self.ns, self.localarch)
             self.override = None
             self._distunset = 'rhel'
         # If we don't match one of the above, punt
@@ -198,12 +176,11 @@ class Commands(pyrpkg.Commands):
     def load_target(self):
         """This creates the target attribute based on branch merge"""
 
-        self.load_ns_repo_name()
         self.load_nameverrel()
         if self.branch_merge == 'master':
-            self._target = 'rawhide-%s' % self.namespace
+            self._target = 'rawhide-%s' % self.ns
         else:
-            self._target = '%s-%s' % ( self.branch_merge , self.namespace)
+            self._target = '%s-%s' % ( self.branch_merge , self.ns)
         if self._package_name_spec in ['buildsys-build-rpmfusion', 'gstreamer1-libav',
             'gstreamer1-plugins-bad-freeworld', 'gstreamer1-plugins-ugly', 'fdk-aac', 'faad2', 'ffmpeg',
             'libde265', 'libdca', 'libmms', 'libquicktime', 'libva-intel-driver', 'mjpegtools',
@@ -211,7 +188,7 @@ class Commands(pyrpkg.Commands):
             'opencore-amr', 'rtmpdump', 'vo-amrwbenc', 'x264', 'x265', 'xvidcore', 'zsnes',
             'Cg', 'dega-sdl', 'gens', 'pcsx2', 'steam', 'xorg-x11-drv-nvidia',
             'xorg-x11-drv-nvidia-580xx', 'xorg-x11-drv-nvidia-470xx', 'xorg-x11-drv-nvidia-390xx',
-            'xorg-x11-drv-nvidia-340xx', 'unace'] and not self.branch_merge.startswith("el") and self.namespace in ['free', 'nonfree']:
+            'xorg-x11-drv-nvidia-340xx', 'unace'] and not self.branch_merge.startswith("el") and self.ns in ['free', 'nonfree']:
             self._target += "-multilibs"
 
     def default_branch_merge(self):

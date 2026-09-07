@@ -9,22 +9,17 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+# PYTHON_ARGCOMPLETE_OK
+
 import logging
 import os
 import sys
+from configparser import ConfigParser
 
-import six
-
-import rfpkg
 import pyrpkg
 import pyrpkg.utils
 
-import argparse
-
-if six.PY3:  # SafeConfigParser == ConfigParser, former deprecated in >= 3.2
-    from six.moves.configparser import ConfigParser
-else:
-    from six.moves.configparser import SafeConfigParser as ConfigParser
+import rfpkg
 
 
 cli_name = os.path.basename(sys.argv[0])
@@ -48,7 +43,7 @@ def main():
 
     # Make sure we have a sane config file
     if not os.path.exists(args.config) and \
-       not other[-1] in ['--help', '-h', 'help']:
+       other[-1] not in ['--help', '-h', 'help']:
         sys.stderr.write('Invalid config file %s\n' % args.config)
         sys.exit(1)
 
@@ -64,7 +59,7 @@ def main():
     if not client.args.path:
         try:
             client.args.path = pyrpkg.utils.getcwd()
-        except Exception:
+        except OSError:
             print('Could not get current path, have you deleted it?')
             sys.exit(1)
 
@@ -89,8 +84,7 @@ def main():
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        log.error('Could not execute %s: %s' %
-                  (client.args.command.__name__, e))
+        log.error('Could not execute %s: %s', client.args.command.__name__, e)
         if client.args.v:
             raise
         sys.exit(1)

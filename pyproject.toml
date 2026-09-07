@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rfpkg"
-version = "1.27.5"
+version = "1.28.0"
 description = "RPM Fusion plugin to rpkg to manage package sources in a git repository"
 license = { text = "GPLv2+" }
 authors = [
